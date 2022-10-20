@@ -19,7 +19,7 @@ def main():
     window.show()
     
     Thread(args=[window],target=collection).start()
-    # Start the event loop of the app or dialog box
+    # Start the event loop of the app
     sys.exit(app.exec())
 
 def collection(window):
