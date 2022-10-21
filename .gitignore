@@ -4,7 +4,6 @@
 zips/
 bin/
 tool/geckodriver.log
-accounts.txt
 *.pyc
 bob.css
-
+tool/python/igp/config/accounts.txt
