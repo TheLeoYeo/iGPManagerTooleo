@@ -21,34 +21,22 @@
        <widget class="QWidget" name="widget" native="true"/>
       </item>
       <item>
-       <layout class="QHBoxLayout" name="horizontalLayout" stretch="0,1,1">
+       <layout class="QHBoxLayout" name="horizontalLayout" stretch="1,1,1">
         <property name="spacing">
          <number>6</number>
         </property>
         <item>
-         <layout class="QVBoxLayout" name="verticalLayout_4" stretch="0,1">
+         <layout class="QVBoxLayout" name="verticalLayout_4" stretch="0,0,1">
           <property name="sizeConstraint">
            <enum>QLayout::SetMaximumSize</enum>
           </property>
-          <item alignment="Qt::AlignHCenter|Qt::AlignTop">
+          <item alignment="Qt::AlignHCenter">
            <widget class="Heading" name="accountsHead">
             <property name="sizePolicy">
-             <sizepolicy hsizetype="Maximum" vsizetype="Minimum">
+             <sizepolicy hsizetype="Maximum" vsizetype="Maximum">
               <horstretch>0</horstretch>
               <verstretch>0</verstretch>
              </sizepolicy>
-            </property>
-            <property name="minimumSize">
-             <size>
-              <width>100</width>
-              <height>0</height>
-             </size>
-            </property>
-            <property name="maximumSize">
-             <size>
-              <width>16777215</width>
-              <height>16</height>
-             </size>
             </property>
             <property name="text">
              <string>Accounts</string>
@@ -58,52 +46,24 @@
             </property>
            </widget>
           </item>
-          <item alignment="Qt::AlignTop">
-           <widget class="Container" name="accountsCont">
-            <property name="sizePolicy">
-             <sizepolicy hsizetype="Preferred" vsizetype="Expanding">
-              <horstretch>0</horstretch>
-              <verstretch>0</verstretch>
-             </sizepolicy>
-            </property>
-            <property name="autoFillBackground">
+          <item>
+           <widget class="DetailsContainer" name="accountsCont">
+            <property name="widgetResizable">
              <bool>true</bool>
             </property>
-            <property name="frameShape">
-             <enum>QFrame::Box</enum>
+           </widget>
+          </item>
+          <item alignment="Qt::AlignHCenter">
+           <widget class="ConfirmButton" name="add_account">
+            <property name="text">
+             <string>ADD ACCOUNT</string>
             </property>
-            <property name="frameShadow">
-             <enum>QFrame::Sunken</enum>
-            </property>
-            <layout class="QVBoxLayout" name="verticalLayout_7">
-             <property name="spacing">
-              <number>0</number>
-             </property>
-             <property name="sizeConstraint">
-              <enum>QLayout::SetMaximumSize</enum>
-             </property>
-             <property name="leftMargin">
-              <number>0</number>
-             </property>
-             <property name="topMargin">
-              <number>0</number>
-             </property>
-             <property name="rightMargin">
-              <number>0</number>
-             </property>
-             <property name="bottomMargin">
-              <number>0</number>
-             </property>
-            </layout>
            </widget>
           </item>
          </layout>
         </item>
         <item>
-         <layout class="QVBoxLayout" name="verticalLayout_5" stretch="0,1">
-          <property name="spacing">
-           <number>6</number>
-          </property>
+         <layout class="QVBoxLayout" name="verticalLayout_5" stretch="0,0,1">
           <property name="sizeConstraint">
            <enum>QLayout::SetMaximumSize</enum>
           </property>
@@ -115,52 +75,25 @@
               <verstretch>0</verstretch>
              </sizepolicy>
             </property>
-            <property name="maximumSize">
-             <size>
-              <width>16777215</width>
-              <height>20</height>
-             </size>
-            </property>
             <property name="text">
-             <string>Operations</string>
+             <string>Tasks</string>
             </property>
            </widget>
           </item>
           <item>
-           <widget class="QFrame" name="operationsCont">
-            <property name="frameShape">
-             <enum>QFrame::Box</enum>
+           <widget class="TasksContainer" name="tasksCont"/>
+          </item>
+          <item alignment="Qt::AlignHCenter">
+           <widget class="ConfirmButton" name="add_jobs_butt">
+            <property name="text">
+             <string>ADD TO JOBS</string>
             </property>
-            <property name="frameShadow">
-             <enum>QFrame::Sunken</enum>
-            </property>
-            <layout class="QVBoxLayout" name="verticalLayout_8">
-             <item alignment="Qt::AlignHCenter|Qt::AlignTop">
-              <widget class="Text" name="checkBox">
-               <property name="sizePolicy">
-                <sizepolicy hsizetype="Minimum" vsizetype="Fixed">
-                 <horstretch>0</horstretch>
-                 <verstretch>0</verstretch>
-                </sizepolicy>
-               </property>
-               <property name="maximumSize">
-                <size>
-                 <width>16777215</width>
-                 <height>20</height>
-                </size>
-               </property>
-               <property name="text">
-                <string>CheckBox</string>
-               </property>
-              </widget>
-             </item>
-            </layout>
            </widget>
           </item>
          </layout>
         </item>
         <item>
-         <layout class="QVBoxLayout" name="verticalLayout_3">
+         <layout class="QVBoxLayout" name="verticalLayout_3" stretch="0,0,1">
           <item alignment="Qt::AlignHCenter">
            <widget class="Heading" name="jobsHead">
             <property name="text">
@@ -169,19 +102,14 @@
            </widget>
           </item>
           <item>
-           <layout class="QVBoxLayout" name="verticalLayout_6">
-            <item>
-             <layout class="QHBoxLayout" name="horizontalLayout_3">
-              <item alignment="Qt::AlignRight">
-               <widget class="QListWidget" name="listWidget">
-                <property name="frameShape">
-                 <enum>QFrame::Box</enum>
-                </property>
-               </widget>
-              </item>
-             </layout>
-            </item>
-           </layout>
+           <widget class="JobsContainer" name="jobsCont"/>
+          </item>
+          <item alignment="Qt::AlignHCenter">
+           <widget class="ConfirmButton" name="perform_butt">
+            <property name="text">
+             <string>PERFORM</string>
+            </property>
+           </widget>
           </item>
          </layout>
         </item>
@@ -189,8 +117,8 @@
       </item>
       <item>
        <layout class="QHBoxLayout" name="horizontalLayout_2">
-        <item alignment="Qt::AlignRight">
-         <widget class="ConfirmButton" name="confButton">
+        <item alignment="Qt::AlignHCenter">
+         <widget class="ConfirmButton" name="refreshButton">
           <property name="maximumSize">
            <size>
             <width>100</width>
@@ -198,7 +126,7 @@
            </size>
           </property>
           <property name="text">
-           <string>ADD</string>
+           <string>REFRESH</string>
           </property>
           <property name="autoDefault">
            <bool>false</bool>
@@ -208,19 +136,6 @@
           </property>
           <property name="flat">
            <bool>false</bool>
-          </property>
-         </widget>
-        </item>
-        <item alignment="Qt::AlignLeft">
-         <widget class="RejectButton" name="rejButton">
-          <property name="maximumSize">
-           <size>
-            <width>100</width>
-            <height>30</height>
-           </size>
-          </property>
-          <property name="text">
-           <string>REMOVE</string>
           </property>
          </widget>
         </item>
@@ -243,18 +158,20 @@
    <header>custom_widgets</header>
   </customwidget>
   <customwidget>
-   <class>RejectButton</class>
-   <extends>QPushButton</extends>
+   <class>DetailsContainer</class>
+   <extends>QScrollArea</extends>
    <header>custom_widgets</header>
+   <container>1</container>
   </customwidget>
   <customwidget>
-   <class>Text</class>
-   <extends>QCheckBox</extends>
+   <class>TasksContainer</class>
+   <extends>QScrollArea</extends>
    <header>custom_widgets</header>
+   <container>1</container>
   </customwidget>
   <customwidget>
-   <class>Container</class>
-   <extends>QFrame</extends>
+   <class>JobsContainer</class>
+   <extends>QScrollArea</extends>
    <header>custom_widgets</header>
    <container>1</container>
   </customwidget>

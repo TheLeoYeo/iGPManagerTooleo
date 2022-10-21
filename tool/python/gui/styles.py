@@ -6,36 +6,50 @@ appStyles = """
     background-color: """+APPBG+""";
 }
 
-
 Heading {
     font-weight: bold;
 }
 
-DetailRow {
-    padding: 3px 3px;
+BaseRow {
+    padding: 6px 6px;
 }
 
-DetailRow:hover {
-    background-color:black;
+#warning {
+    color:red;
+    font-weight:bold;
 }
-
-
 
 Text, QLabel, Heading, QListView, #operationsCont {
     color:white;
     font-size: 16px;
 }
 
-QListView, Container, #operationsCont {
+Container{
+    background-color:rgb(40, 40, 40);
+}
+
+ContainerFrame, LoginWindow {
     background-color:rgb(50, 50, 50);
+}
+
+
+QScrollBar{
+    background-color: rgb(80,80,80);
+}
+
+Container, LoginWindow {
+    border: 2px solid rgb(150, 150, 150);
+    border-radius: 4px;
 }
 
 ConfirmButton {
     background-color:rgb(48, 223, 62);
+    font-weight: bold;
 }
 
 RejectButton {
     background-color:rgb(221, 63, 63);
+    font-weight: bold;
 }
 
 DefaultButton {

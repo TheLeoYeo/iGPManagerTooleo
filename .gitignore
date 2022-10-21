@@ -3,3 +3,6 @@
 .vscode/settings.json
 zips/
 bin/
+tool/geckodriver.log
+*.pyc
+bob.css

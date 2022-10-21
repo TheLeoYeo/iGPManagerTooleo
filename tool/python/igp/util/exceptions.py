@@ -8,3 +8,7 @@ class LoginError(Exception):
 
 class NoSuchPilotError(Exception):
     pass
+
+
+class LoginDetailsError(Exception):
+    pass

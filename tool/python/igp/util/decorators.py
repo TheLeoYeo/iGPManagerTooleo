@@ -2,6 +2,14 @@ import functools
 
 from igp.service.base_igp_account import BaseIGPaccount
 
+class Command():
+    def __init__(self, alias, function):
+        self.alias = alias
+        self.function = function
+    
+    def __str__(self):
+        return self.alias
+
 def igpcommand(_func=None, *args, **kwargs):
     def decorator_command(func, alias=None, page=None):  
         if not alias:
@@ -21,7 +29,7 @@ def igpcommand(_func=None, *args, **kwargs):
                 
             return func(self, *args, **kwargs)
         
-        BaseIGPaccount.commands[alias] = wrapper
+        BaseIGPaccount.commands.append(Command(alias, wrapper))
         return wrapper
     
 

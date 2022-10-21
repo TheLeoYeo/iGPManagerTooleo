@@ -5,10 +5,11 @@ from selenium.webdriver.support.ui import WebDriverWait
 
 from igp.service.main_browser import MainBrowser
 from igp.util.tools import output_with_message
+from igp.util.exceptions import LoginDetailsError
 
 
 class BaseIGPaccount():
-    commands = {}
+    commands = []
     username: str = ""
     password: str = ""
     driver: MainBrowser = None
@@ -17,15 +18,13 @@ class BaseIGPaccount():
     login_url = "https://igpmanager.com/app/p=login"
     
     
-    def __init__(self, username:str, password:str, minimised:bool=False):               
-        if not self.isclean(username):
-            output_with_message(f"email '{username}' has invalid characters:\n\\ or ;")
-            return None
-
-        if not self.isclean(password):
-            rpassword = repr(password)
-            output_with_message(f"password '{rpassword}' has invalid characters:\n\\ or ;") 
-            return None
+    def __init__(self, username:str, password:str, minimised:bool=False):
+        try:
+            self.isclean(username)
+            self.isclean(password)
+        except LoginDetailsError as e:
+            raise e
+                 
         
         self.driver = MainBrowser.get_instance(minimised)
         self.set_details(username, password)
@@ -33,13 +32,16 @@ class BaseIGPaccount():
 
     def isclean(self, text: str):
         org_length = len(text)
+        if org_length == 0:
+            raise LoginDetailsError
+        
         filtered = text.replace("\\", "")
         if len(filtered) < org_length:
-            return False
+            raise LoginDetailsError
 
         filtered = text.replace(";", "")
         if len(filtered) < org_length:
-            return False
+            raise LoginDetailsError
 
         return True
         
@@ -128,3 +130,6 @@ class BaseIGPaccount():
 
     def logged_in(self):
         return self == BaseIGPaccount.logged_acc
+    
+    def __str__(self) -> str:
+        return self.username

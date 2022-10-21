@@ -1,5 +1,6 @@
 from os import path
 from igp.service.igpaccount import IGPaccount
+from igp.util.events import Event
 from util.utils import join
 
 
@@ -10,14 +11,15 @@ FORMATMSG = "Please format the accounts file such that there is:\nOne account pe
 class AccountIterator():
     accounts = []
     singleton = None
+    listeners = []
     
     def get_instance(*args, **kwargs):
         if not AccountIterator.singleton:
-            AccountIterator.singleton = AccountIterator(args, kwargs)
+            AccountIterator.singleton = AccountIterator(*args, **kwargs)
         
         return AccountIterator.singleton
     
-    def __init__(self, accounts:list=[], minimised=False):
+    def __init__(self, accounts:list=[], minimised=True):
         self.accounts:list = []
         self.index = -1
         self.collect_accounts(minimised)
@@ -35,7 +37,7 @@ class AccountIterator():
 
     def collect_accounts(self, minimised=False):
         with open(self.acc_dir(), "r") as acc_file:
-            lines = acc_file.readlines()
+            lines = acc_file.readlines()[1:]
             for index, line in enumerate(lines):
                 data = line.split(";")
                 if len(data) > 3:
@@ -78,13 +80,17 @@ class AccountIterator():
             return
 
         unique = True
-        for added_account in self.accounts:
+        for index, added_account in enumerate(self.accounts):
+            # password has potentially been updated, replace old account details
             if added_account.username == account.username:
+                self.accounts[index] = account
                 unique = False
                 break
 
         if unique:
             self.accounts.append(account)
+            
+        self.changed()
 
 
     def add_make_current(self, account: IGPaccount):
@@ -94,3 +100,11 @@ class AccountIterator():
         self.add_account(account)
         while self.current() != account:
             next(self)
+
+    def add_to_listeners(self, object):
+        self.listeners.append(object)
+        
+        
+    def changed(self):
+        for listener in self.listeners:
+            listener.handle(Event.ACCOUNTS_UPDATED)
