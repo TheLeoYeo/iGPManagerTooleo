@@ -76,4 +76,6 @@ class CarRepairCommands(BaseIGPaccount):
         bar = car.find_elements(By.CLASS_NAME, "ratingBar")[bar_num]
         health_bar = bar.find_elements(By.TAG_NAME, "div")[0]
         health_text = health_bar.get_attribute("style")
-        return int(health_text.split(": ")[1].split("%")[0])
+        health = int(health_text.split(": ")[1].split("%")[0])
+        print(health)
+        return health

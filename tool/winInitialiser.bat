@@ -1,1 +1,2 @@
-pip install pipenv
+py -m pip install pipenv
+cmd /k
