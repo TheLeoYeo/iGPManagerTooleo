@@ -10,10 +10,6 @@ Heading {
     font-weight: bold;
 }
 
-BaseRow {
-    padding: 6px 6px;
-}
-
 #warning {
     color:red;
     font-weight:bold;

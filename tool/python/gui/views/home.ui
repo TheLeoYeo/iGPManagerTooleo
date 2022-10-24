@@ -21,7 +21,7 @@
        <widget class="QWidget" name="widget" native="true"/>
       </item>
       <item>
-       <layout class="QHBoxLayout" name="horizontalLayout" stretch="1,1,1">
+       <layout class="QHBoxLayout" name="horizontalLayout" stretch="3,2,3">
         <property name="spacing">
          <number>6</number>
         </property>
@@ -119,12 +119,6 @@
        <layout class="QHBoxLayout" name="horizontalLayout_2">
         <item alignment="Qt::AlignHCenter">
          <widget class="ConfirmButton" name="refreshButton">
-          <property name="maximumSize">
-           <size>
-            <width>100</width>
-            <height>30</height>
-           </size>
-          </property>
           <property name="text">
            <string>REFRESH</string>
           </property>

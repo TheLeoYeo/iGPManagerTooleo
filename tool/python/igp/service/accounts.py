@@ -101,6 +101,7 @@ class AccountIterator():
         while self.current() != account:
             next(self)
 
+
     def add_to_listeners(self, object):
         self.listeners.append(object)
         

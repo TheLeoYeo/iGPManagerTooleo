@@ -26,7 +26,7 @@ class BaseIGPaccount():
             raise e
                  
         
-        self.driver = MainBrowser.get_instance(minimised)
+        # self.driver = MainBrowser.get_instance(minimised)
         self.set_details(username, password)
 
 

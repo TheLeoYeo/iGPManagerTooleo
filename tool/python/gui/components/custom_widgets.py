@@ -12,15 +12,18 @@ from igp.util.events import Event
 from igp.util.exceptions import LoginDetailsError
 from util.utils import join
 
+
 class ConfirmButton(QtWidgets.QPushButton):
     def __init__(self, *args, **kwargs):
         QtWidgets.QPushButton.__init__(self, *args, **kwargs)
         self.setMaximumSize(100, 30)
 
+
 class RejectButton(QtWidgets.QPushButton):
     def __init__(self, *args, **kwargs):
         QtWidgets.QPushButton.__init__(self, *args, **kwargs)
         self.setMaximumSize(100, 30)
+
 
 class DefaultButton(QtWidgets.QPushButton):
     pass
@@ -48,25 +51,27 @@ class RowSep(QtWidgets.QFrame, BaseLine):
 
 class RowDropDown(QLabel):
     inside = False
+    DEF_STYLES = "padding: 6px;"
     
     def __init__(self, *args, **kwargs):
         QLabel.__init__(self, *args, **kwargs)
+        self.setStyleSheet(f"{self.DEF_STYLES}")
     
     def mousePressEvent(self, e) -> None:
-        self.setStyleSheet("background-color:rgba(200, 200, 200, 0.3);")
+        self.setStyleSheet(f"{self.DEF_STYLES}background-color:rgba(200, 200, 200, 0.3);")
             
     def mouseReleaseEvent(self, e) -> None:
-        self.setStyleSheet("background-color:none;")
+        self.setStyleSheet(f"{self.DEF_STYLES}background-color:none;")
         if self.inside:
             self.enterEvent(e)
     
     def enterEvent(self, e) -> None:
         self.inside = True
-        self.setStyleSheet("background-color:rgba(20,20,20,0.5);")
+        self.setStyleSheet(f"{self.DEF_STYLES}background-color:rgba(20,20,20,0.5);")
         
     def leaveEvent(self, e) -> None:
         self.inside = False
-        self.setStyleSheet("background-color:none;")
+        self.setStyleSheet(f"{self.DEF_STYLES}background-color:none;")
         
 
 class BaseRow(QtWidgets.QFrame):
@@ -83,6 +88,7 @@ class BaseRow(QtWidgets.QFrame):
             self.object = object
             self.row_name.setText(object.__str__())
             self.row_name.setWordWrap(False)
+            self.row_name.setStyleSheet("padding-left: 6px")
         self.setToolTip(object.__str__())
         self.show()
         
@@ -116,7 +122,7 @@ class BaseRow(QtWidgets.QFrame):
 
         self.row_dropdown = RowDropDown()
         self.row_dropdown.setObjectName(u"row_dropdown")
-        self.row_dropdown.setMaximumSize(QSize(20, 20))
+        self.row_dropdown.setMaximumSize(QSize(30, 30))
         self.row_dropdown.setPixmap(QPixmap(join("gui","images","dropdown.png", uplevel=2)))
         self.row_dropdown.setScaledContents(True)
         layout.addWidget(self.row_dropdown)
@@ -137,7 +143,7 @@ class BaseRow(QtWidgets.QFrame):
     def enterEvent(self, e) -> None:
         self.inside = True
         if not self.selected:
-            self.setStyleSheet("BaseRow{background-color:rgba(30,30,30,0.5);}")
+            self.setStyleSheet("BaseRow{background-color:rgba(35,35,35,0.5);}")
 
 
     def leaveEvent(self, e) -> None:
@@ -185,6 +191,7 @@ class Container(QScrollArea):
         self.setObjectName("accountsCont")
         
         self.setVerticalScrollBarPolicy(Qt.ScrollBarAsNeeded)
+        # self.setHorizontalScrollBarPolicy(Qt.ScrollBarPolicy.ScrollBarAlwaysOff)
         self.setWidgetResizable(True)
         
         self.setAlignment(Qt.AlignHCenter|Qt.AlignTop)

@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 
-# Form implementation generated from reading ui file '/home/leviyeo/Desktop/Programming_Files/iGPManagerTooleo/tool/python/gui/views/home.ui'
+# Form implementation generated from reading ui file '/media/leviyeo/Windows/Users/Christian/Documents/Programming_Files/iGPManagerTooleo/tool/python/gui/views/home.ui'
 #
 # Created by: PyQt5 UI code generator 5.15.7
 #
@@ -80,14 +80,13 @@ class Ui_iGPMT(object):
         self.verticalLayout_3.addWidget(self.perform_butt, 0, QtCore.Qt.AlignHCenter)
         self.verticalLayout_3.setStretch(2, 1)
         self.horizontalLayout.addLayout(self.verticalLayout_3)
-        self.horizontalLayout.setStretch(0, 1)
-        self.horizontalLayout.setStretch(1, 1)
-        self.horizontalLayout.setStretch(2, 1)
+        self.horizontalLayout.setStretch(0, 3)
+        self.horizontalLayout.setStretch(1, 2)
+        self.horizontalLayout.setStretch(2, 3)
         self.verticalLayout.addLayout(self.horizontalLayout)
         self.horizontalLayout_2 = QtWidgets.QHBoxLayout()
         self.horizontalLayout_2.setObjectName("horizontalLayout_2")
         self.refreshButton = ConfirmButton(self.centralwidget)
-        self.refreshButton.setMaximumSize(QtCore.QSize(100, 30))
         self.refreshButton.setAutoDefault(False)
         self.refreshButton.setDefault(False)
         self.refreshButton.setFlat(False)
