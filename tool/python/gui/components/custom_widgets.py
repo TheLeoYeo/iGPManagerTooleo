@@ -191,7 +191,6 @@ class Container(QScrollArea):
         self.setObjectName("accountsCont")
         
         self.setVerticalScrollBarPolicy(Qt.ScrollBarAsNeeded)
-        # self.setHorizontalScrollBarPolicy(Qt.ScrollBarPolicy.ScrollBarAlwaysOff)
         self.setWidgetResizable(True)
         
         self.setAlignment(Qt.AlignHCenter|Qt.AlignTop)
