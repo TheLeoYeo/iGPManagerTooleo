@@ -82,6 +82,7 @@ class BaseRow(QtWidgets.QFrame):
     
     def __init__(self, object=None, parent:QtWidgets.QFrame=None):
         QtWidgets.QFrame.__init__(self, parent, objectName=f"detailrow{BaseRow.count}")
+        BaseRow.count += 1
         self.setupUi()
         
         if object:
@@ -95,7 +96,6 @@ class BaseRow(QtWidgets.QFrame):
 
 
     def setupUi(self):
-        BaseRow.count += 1
         self.setGeometry(QRect(50, 210, 141, 41))
         sizePolicy = QSizePolicy(QSizePolicy.Expanding, QSizePolicy.Preferred)
         sizePolicy.setHorizontalStretch(0)
@@ -169,7 +169,8 @@ class TaskRow(BaseRow):
             TasksContainer.selected.append(self.object)
         else:
             TasksContainer.selected.remove(self.object)
-        
+
+      
 class JobRow(BaseRow):
     pass
 
