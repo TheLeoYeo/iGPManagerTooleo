@@ -279,6 +279,7 @@ class DetailsContainer(Container):
             self.refresh()
             
     def refresh(self):
+        self.selected = []
         self.replace_rows(AccountIterator.get_instance().accounts)
     
     
@@ -290,8 +291,10 @@ class TasksContainer(Container):
         
     def row(self, task, parent):
         return TaskRow(task, parent)
-    
+
+   
     def refresh(self):
+        self.selected = []
         self.replace_rows(BaseIGPaccount.commands)
     
     
@@ -306,6 +309,7 @@ class JobsContainer(Container):
         return JobRow(account, parent)
     
     def refresh(self):
+        self.selected = []
         self.replace_rows(AllJobs.jobs)
         
     def handle(self, event:Event):
