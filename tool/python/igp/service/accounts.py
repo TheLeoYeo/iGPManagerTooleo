@@ -1,4 +1,6 @@
+import atexit
 from os import path
+
 from igp.service.igpaccount import IGPaccount
 from igp.util.events import Event
 from util.utils import join
@@ -9,7 +11,6 @@ FORMATMSG = "Please format the accounts file such that there is:\nOne account pe
 
 
 class AccountIterator():
-    accounts = []
     singleton = None
     listeners = []
     
@@ -20,7 +21,8 @@ class AccountIterator():
         return AccountIterator.singleton
     
     def __init__(self, accounts:list=[], minimised=True):
-        self.accounts:list = []
+        self.replace_if_gone()
+        self.accounts:list[IGPaccount] = []
         self.index = -1
         self.collect_accounts(minimised)
         
@@ -33,6 +35,13 @@ class AccountIterator():
 
     def acc_dir(self):
         return join(*ACCDIR, uplevel=2)
+    
+    def replace_if_gone(self):
+        try:
+            open(self.acc_dir(), "a").close()
+        except:
+            with open(self.acc_dir(), "a") as acc_file:
+                acc_file.write("email;password;\n")
 
 
     def collect_accounts(self, minimised=False):
@@ -55,7 +64,15 @@ class AccountIterator():
                             break
 
                     if valid:
-                        self.add_account(IGPaccount(data[0], data[1], minimised))               
+                        self.add_account(IGPaccount(data[0], data[1], minimised))
+                        
+                                                
+    def update_file(self):
+        open(self.acc_dir(), "w").close()
+        with open(self.acc_dir(), "a") as acc_file:
+            acc_file.write("email;password;\n")
+            for account in self.accounts:
+                acc_file.write(f"{account.username};{account.password};\n")
                 
 
     def next(self):
@@ -91,8 +108,19 @@ class AccountIterator():
             self.accounts.append(account)
             
         self.changed()
+        
+        
+    def remove_account(self, account: IGPaccount):
+        if account in self.accounts:
+            self.accounts.remove(account)
+            self.changed()
 
 
+    def remove_accounts(self, accounts: list[IGPaccount]):
+        for account in accounts:
+            self.remove_account(account)
+           
+            
     def add_make_current(self, account: IGPaccount):
         if not account:
             return
@@ -109,3 +137,9 @@ class AccountIterator():
     def changed(self):
         for listener in self.listeners:
             listener.handle(Event.ACCOUNTS_UPDATED)
+            
+            
+def exit_handler():
+    AccountIterator.get_instance().update_file()
+
+atexit.register(exit_handler)
