@@ -16,7 +16,7 @@
   <widget class="QWidget" name="centralwidget">
    <layout class="QVBoxLayout" name="verticalLayout_2">
     <item>
-     <layout class="QVBoxLayout" name="verticalLayout">
+     <layout class="QVBoxLayout" name="verticalLayout" stretch="0,0,1">
       <item>
        <widget class="QWidget" name="widget" native="true"/>
       </item>
@@ -53,12 +53,23 @@
             </property>
            </widget>
           </item>
-          <item alignment="Qt::AlignHCenter">
-           <widget class="ConfirmButton" name="add_account">
-            <property name="text">
-             <string>ADD ACCOUNT</string>
-            </property>
-           </widget>
+          <item>
+           <layout class="QHBoxLayout" name="horizontalLayout_3">
+            <item alignment="Qt::AlignHCenter">
+             <widget class="ConfirmButton" name="add_account">
+              <property name="text">
+               <string>ADD ACC.</string>
+              </property>
+             </widget>
+            </item>
+            <item alignment="Qt::AlignHCenter">
+             <widget class="RejectButton" name="remove_account">
+              <property name="text">
+               <string>REMOVE ACC.</string>
+              </property>
+             </widget>
+            </item>
+           </layout>
           </item>
          </layout>
         </item>
@@ -168,6 +179,11 @@
    <extends>QScrollArea</extends>
    <header>custom_widgets</header>
    <container>1</container>
+  </customwidget>
+  <customwidget>
+   <class>RejectButton</class>
+   <extends>QPushButton</extends>
+   <header>custom_widgets</header>
   </customwidget>
  </customwidgets>
  <resources/>

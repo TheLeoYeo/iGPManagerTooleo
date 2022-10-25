@@ -1,6 +1,7 @@
 from PyQt5 import QtWidgets, uic, QtCore
 from PyQt5.QtCore import Qt
 
+from igp.service.accounts import AccountIterator
 from igp.service.base_igp_account import BaseIGPaccount
 from igp.service.jobs import AllJobs, Job
 from util.utils import join
@@ -34,6 +35,7 @@ class Main(QtWidgets.QMainWindow, UI_Window):
         
         self.refreshButton.pressed.connect(self.refresh)
         self.add_account.pressed.connect(self.create_login)
+        self.remove_account.pressed.connect(self.remove_acc)
         self.add_jobs_butt.pressed.connect(self.add_jobs)
         self.perform_butt.pressed.connect(self.perform)
     
@@ -47,6 +49,13 @@ class Main(QtWidgets.QMainWindow, UI_Window):
     def create_login(self):
         self.addlogin.show()
         
+        
+    def remove_acc(self):
+        instance = AccountIterator.get_instance()
+        accounts = self.accountsCont.selected.copy()
+        instance.remove_accounts(accounts)
+
+
     def perform(self):
         AllJobs.perform()
     
