@@ -3,7 +3,9 @@
 .vscode/settings.json
 zips/
 bin/
+__pycache__/
 tool/geckodriver.log
 *.pyc
 bob.css
 tool/python/igp/config/accounts.txt
+tool/python/igp/results/log.txt
