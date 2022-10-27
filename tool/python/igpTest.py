@@ -1,10 +1,10 @@
 from igp.service.accounts import AccountIterator
 from igp.service.options import options
-from igp.util.tools import output_with_message
+from igp.util.tools import output
 
 
 def main():
-    output_with_message('''Welcome to the app.
+    output('''Welcome to the app.
     If log in fails, navigate to account, set details again -
     then attempt to log in again.
     Logging in unlocks iGP web features such as training drivers

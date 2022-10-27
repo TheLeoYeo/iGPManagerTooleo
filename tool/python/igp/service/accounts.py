@@ -3,6 +3,7 @@ from os import path
 
 from igp.service.igpaccount import IGPaccount
 from igp.util.events import Event
+from igp.util.tools import output, replace_if_gone
 from util.utils import join
 
 
@@ -20,8 +21,10 @@ class AccountIterator():
         
         return AccountIterator.singleton
     
+    
     def __init__(self, accounts:list=[], minimised=True):
-        self.replace_if_gone()
+        self.default_file = "email;password;\n"
+        replace_if_gone(self.acc_dir(), self.default_file)
         self.accounts:list[IGPaccount] = []
         self.index = -1
         self.collect_accounts(minimised)
@@ -35,13 +38,6 @@ class AccountIterator():
 
     def acc_dir(self):
         return join(*ACCDIR, uplevel=2)
-    
-    def replace_if_gone(self):
-        try:
-            open(self.acc_dir(), "a").close()
-        except:
-            with open(self.acc_dir(), "a") as acc_file:
-                acc_file.write("email;password;\n")
 
 
     def collect_accounts(self, minimised=False):
@@ -50,16 +46,16 @@ class AccountIterator():
             for index, line in enumerate(lines):
                 data = line.split(";")
                 if len(data) > 3:
-                    print(f"\nToo many semi-colons on line {index}.\n{FORMATMSG}")
+                    output(f"\nToo many semi-colons on line {index}.\n{FORMATMSG}")
 
                 elif len(data) < 3:
-                    print(f"\nNot enough semi-colons on line {index}.\n{FORMATMSG}")
+                    output(f"\nNot enough semi-colons on line {index}.\n{FORMATMSG}")
 
                 else:
                     valid = True
                     for datum in data:
                         if "\\" in datum:
-                            print(f"{datum} has invalid characters")
+                            output(f"{datum} has invalid characters")
                             valid = False
                             break
 

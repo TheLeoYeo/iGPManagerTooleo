@@ -1,3 +1,4 @@
+from pickle import NONE
 from PyQt5 import QtWidgets, uic
 from PyQt5.QtCore import *
 from PyQt5.QtGui import *
@@ -6,7 +7,7 @@ from PyQt5.QtWidgets import *
 from igp.service.accounts import AccountIterator
 from igp.service.base_igp_account import BaseIGPaccount
 from igp.service.igpaccount import IGPaccount
-from igp.service.jobs import AllJobs
+from igp.service.jobs import AllJobs, Job
 from igp.util.decorators import Command
 from igp.util.events import Event
 from igp.util.exceptions import LoginDetailsError
@@ -16,12 +17,14 @@ from util.utils import join
 class ConfirmButton(QtWidgets.QPushButton):
     def __init__(self, *args, **kwargs):
         QtWidgets.QPushButton.__init__(self, *args, **kwargs)
+        self.setCursor(QCursor(Qt.PointingHandCursor))
         self.setMaximumSize(100, 30)
 
 
 class RejectButton(QtWidgets.QPushButton):
     def __init__(self, *args, **kwargs):
         QtWidgets.QPushButton.__init__(self, *args, **kwargs)
+        self.setCursor(QCursor(Qt.PointingHandCursor))
         self.setMaximumSize(100, 30)
 
 
@@ -87,15 +90,17 @@ class BaseRow(QtWidgets.QFrame):
         
         if object:
             self.object = object
+            self.select_if_it_was_selected(object)
             self.row_name.setText(object.__str__())
             self.row_name.setWordWrap(False)
             self.row_name.setStyleSheet("padding-left: 6px")
-        self.setToolTip(object.__str__())
+            self.setToolTip(object.help())
         self.show()
         
 
 
     def setupUi(self):
+        self.setCursor(QCursor(Qt.PointingHandCursor))
         self.setGeometry(QRect(50, 210, 141, 41))
         sizePolicy = QSizePolicy(QSizePolicy.Expanding, QSizePolicy.Preferred)
         sizePolicy.setHorizontalStretch(0)
@@ -153,6 +158,9 @@ class BaseRow(QtWidgets.QFrame):
     
     def selected_event(self):
         pass
+    
+    def select_if_it_was_selected(self, object):
+        pass
 
 
 class DetailRow(BaseRow):
@@ -166,13 +174,22 @@ class DetailRow(BaseRow):
 class TaskRow(BaseRow):
     def selected_event(self):
         if self.selected:
-            TasksContainer.selected.append(self.object)
+            TasksContainer.instance.selected.append(self.object)
         else:
-            TasksContainer.selected.remove(self.object)
+            TasksContainer.instance.selected.remove(self.object)
 
       
 class JobRow(BaseRow):
-    pass
+    def selected_event(self):
+        if self.selected:
+            JobsContainer.instance.selected.append(self.object)
+        else:
+            JobsContainer.instance.selected.remove(self.object)
+    
+    
+    def select_if_it_was_selected(self, object):
+        if object in JobsContainer.instance.selected:
+            self.mousePressEvent(None)
 
 
 class ContainerFrame(QFrame):
@@ -265,29 +282,40 @@ class Container(QScrollArea):
 class DetailsContainer(Container):
     selected:list[IGPaccount] = []
     instance = None
-            
-    
+                
     def __init__(self, *args, **kwargs):
         Container.__init__(self, *args, **kwargs)
         AccountIterator.get_instance().add_to_listeners(self)
+        BaseIGPaccount.add_to_listeners(self)
         DetailsContainer.instance = self
+        
         
     def row(self, account:BaseIGPaccount, parent):
         return DetailRow(account, parent)
 
+
     def handle(self, event: Event):
         if event == Event.ACCOUNTS_UPDATED: 
             self.refresh()
+        
+        elif event == Event.ACCOUNT_NAME_UPDATED:
+            self.partial_refresh()
             
     def refresh(self):
         self.selected = []
+        self.partial_refresh()
+        
+    def partial_refresh(self):
         self.replace_rows(AccountIterator.get_instance().accounts)
     
     
 class TasksContainer(Container):
     selected:list[Command] = []
+    instance = None
+    
     def __init__(self, *args, **kwargs):
         Container.__init__(self, *args, **kwargs)
+        TasksContainer.instance = self
         
         
     def row(self, task, parent):
@@ -298,24 +326,46 @@ class TasksContainer(Container):
         self.selected = []
         self.replace_rows(BaseIGPaccount.commands)
     
-    
-    
+       
 class JobsContainer(Container):
-    selected = []
+    selected:list[Job] = []
+    instance = None
+    
     def __init__(self, *args, **kwargs):
         Container.__init__(self, *args, **kwargs)
         AllJobs.add_to_listeners(self)
+        BaseIGPaccount.add_to_listeners(self)
+        JobsContainer.instance = self
+    
         
     def row(self, account, parent):
         return JobRow(account, parent)
     
+    
     def refresh(self):
         self.selected = []
+        self.partial_refresh()
+        
+        
+    def partial_refresh(self):
         self.replace_rows(AllJobs.jobs)
+
+        
+    def perform(self):
+        if len(self.selected) == 0:
+            AllJobs.perform()
+        
+        else:
+            for job in self.selected:
+                job.perform()
+        
         
     def handle(self, event:Event):
         if event == Event.JOBS_UPDATED:
-            self.refresh()
+            self.partial_refresh()
+        
+        elif event == Event.ACCOUNT_NAME_UPDATED:
+            self.partial_refresh()
     
     
 class LoginWindow(QFrame):

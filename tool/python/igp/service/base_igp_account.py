@@ -4,16 +4,19 @@ from selenium.webdriver.support import expected_conditions as ec
 from selenium.webdriver.support.ui import WebDriverWait
 
 from igp.service.main_browser import MainBrowser
-from igp.util.tools import output_with_message
+from igp.util.tools import output
 from igp.util.exceptions import LoginDetailsError
+from igp.util.events import Event
 
 
 class BaseIGPaccount():
+    listeners:list = []
     commands = []
     username: str = ""
     password: str = ""
     driver: MainBrowser = None
     logged_acc = None
+    confirmed_valid = False
     window = None
     login_url = "https://igpmanager.com/app/p=login"
     
@@ -26,7 +29,7 @@ class BaseIGPaccount():
             raise e
                  
         
-        # self.driver = MainBrowser.get_instance(minimised)
+        self.driver = MainBrowser.get_instance(minimised)
         self.set_details(username, password)
 
 
@@ -44,6 +47,15 @@ class BaseIGPaccount():
             raise LoginDetailsError
 
         return True
+    
+    
+    def add_to_listeners(object):
+        BaseIGPaccount.listeners.append(object)
+        
+        
+    def changed(self, event:Event):
+        for listener in BaseIGPaccount.listeners:
+            listener.handle(event)
         
 
     def set_details(self, username:str, password:str):
@@ -51,16 +63,18 @@ class BaseIGPaccount():
             self.log_out()
         self.username = username
         self.password = password 
+        self.confirmed_valid = False
+        self.changed(Event.ACCOUNT_NAME_UPDATED)
 
      
     def login(self):
         if self.logged_in():
-            output_with_message("logged in already")
+            output(f"Tried to log into of account {self.return_name()} which was already logged in")
             return
 
         if BaseIGPaccount.logged_acc:
             BaseIGPaccount.logged_acc.log_out()
-        output_with_message(f"Trying to login to {self.username} account")
+        output(f"Trying to login to {self.username} account")
 
         # create a new tab for this user
         self.window = self.driver.open_window(self.login_url)
@@ -80,21 +94,18 @@ class BaseIGPaccount():
         WebDriverWait(self.driver, 10).until(ec.any_of(login_success, login_fail))
 
         if login_fail(self.driver):
-            output_with_message("Details were invalid. Please set them again")
+            output("Details were invalid. Please set them again")
             self.reset_window()
         else:
             BaseIGPaccount.logged_acc = self
-            output_with_message(f"We've logged in to {self.username}")
-        
-        
-    def just_tried_this(self):
-        self.driver.to_window()
-        output_with_message(f'You just tried this with {self.return_name()}')
+            output(f"Logged in to {self.return_name()}")
+            self.confirmed_valid = True
+            self.changed(Event.ACCOUNT_NAME_UPDATED)
 
 
     def log_out(self):
         if not self.logged_in():
-            output_with_message("You've already logged out of this account!")
+            output(f"Tried to log out of account {self.return_name()} which was already logged out")
             return
        
         WebDriverWait(self.driver, 20).until(ec.presence_of_element_located((By.ID, "headerProfile")))
@@ -107,7 +118,7 @@ class BaseIGPaccount():
         BaseIGPaccount.logged_acc = None
         self.reset_window()
         
-        output_with_message(f"Just closed the tab for {self.username} account")
+        output(f"Logged out of {self.return_name()} account")
 
 
     def reset_window(self):
@@ -120,10 +131,10 @@ class BaseIGPaccount():
 
 
     def return_name(self):
-        if not self.logged_in():
+        if not self.confirmed_valid:
             if not self.username:
                 self.username = "-blank-"
-            return self.username + "***"
+            return "*" + self.username + "*"
 
         return self.username
 
@@ -131,5 +142,9 @@ class BaseIGPaccount():
     def logged_in(self):
         return self == BaseIGPaccount.logged_acc
     
+    
     def __str__(self) -> str:
-        return self.username
+        return self.return_name()
+    
+    def help(self) -> str:
+        return self.__str__()

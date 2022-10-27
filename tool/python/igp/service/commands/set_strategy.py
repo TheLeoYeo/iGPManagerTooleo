@@ -8,7 +8,7 @@ from selenium.webdriver.support.ui import WebDriverWait
 
 from igp.service.base_igp_account import BaseIGPaccount
 from igp.util.exceptions import NoSuchPilotError
-from igp.util.tools import output_with_message
+from igp.util.tools import output
 
 
 class Suspension(Enum):
@@ -22,9 +22,9 @@ class SetupCommands(BaseIGPaccount):
     setup_page = "https://igpmanager.com/app/p=race&tab=setup"
 
 
-    def setup_drivers(self, suspension:Suspension, rheight:int, wlevel:int):
+    def setup_drivers(self, suspension:Suspension=Suspension.SOFT, rheight:int=20, wlevel:int=20):
         if not self.logged_in():
-                output_with_message("log in first")
+                output("log in first")
                 return
 
         if self.driver.current_url != self.setup_page:
@@ -33,13 +33,13 @@ class SetupCommands(BaseIGPaccount):
         self.setup_driver(1, suspension, rheight, wlevel)
 
 
-    def setup_driver(self, driver:int, suspension:Suspension, rheight:int, wlevel:int):
+    def setup_driver(self, driver:int=1, suspension:Suspension=Suspension.SOFT, rheight:int=20, wlevel:int=20):
         """Set setup for a driver
             1 for driver 1 and 2 for driver 2
         """
         
         if not self.logged_in():
-                output_with_message("log in first")
+                output("log in first")
                 return
 
         if self.driver.current_url != self.setup_page:
@@ -65,7 +65,6 @@ class SetupCommands(BaseIGPaccount):
             button.click()
         
               
-
     def train_by_threshold(self, threshold):
         '''
             Train until driver reaches a certain minimal health value

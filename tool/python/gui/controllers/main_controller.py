@@ -57,7 +57,8 @@ class Main(QtWidgets.QMainWindow, UI_Window):
 
 
     def perform(self):
-        AllJobs.perform()
+        self.jobsCont.perform()
+        
     
         
     def add_jobs(self):

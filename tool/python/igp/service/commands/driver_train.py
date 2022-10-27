@@ -5,33 +5,18 @@ from selenium.webdriver.support import expected_conditions as ec
 from selenium.webdriver.support.ui import WebDriverWait
 
 from igp.service.base_igp_account import BaseIGPaccount
-from igp.util.tools import output_with_message
+from igp.util.decorators import igpcommand
+from igp.util.tools import output
 
 
 class DriverTrainCommands(BaseIGPaccount):
     training_page = "https://igpmanager.com/app/p=training"
-    
-    def train_drivers(self):
-        if not self.logged_in():
-                output_with_message("log in first")
-                return
 
-        if self.driver.current_url != self.training_page:
-            self.driver.get(self.training_page)
-
-        self.train_by_threshold(70)
-              
-
-    def train_by_threshold(self, threshold):
-        '''Train if driver is above a certain minimal health value
-        '''
-        if not self.logged_in():
-                output_with_message("log in first")
-                return
-
-        if self.driver.current_url != self.training_page:
-            self.driver.get(self.training_page)
             
+    @igpcommand(alias="train if above X%", page=training_page)
+    def train_above_threshold(self, threshold:int=50):
+        '''Train if driver is above a certain minimal health value
+        ''' 
         
         if threshold < 0:
             threshold = 0
@@ -50,17 +35,10 @@ class DriverTrainCommands(BaseIGPaccount):
         train_button.click()
 
 
-    def train_until_threshold(self, threshold):
+    @igpcommand(alias="train until 0%", page=training_page)
+    def train_until_threshold(self, threshold:int=0):
         '''Train while driver is above a certain minimal health value
-        '''
-        if not self.logged_in():
-                output_with_message("log in first")
-                return
-
-        if self.driver.current_url != self.training_page:
-            self.driver.get(self.training_page)
-            
-        
+        '''       
         if threshold < 0:
             threshold = 0
             
@@ -84,14 +62,17 @@ class DriverTrainCommands(BaseIGPaccount):
             count = count + 1
 
 
-    def driver_health(self, driver_num):
+    @igpcommand(alias="driver health", page=training_page)
+    def driver_health(self, driver_num:int=0):
         table = self.driver.find_element(By.ID, "trainTable")
         driver_row = table.find_elements(By.CLASS_NAME, "tr")[driver_num]
         return self.driver_health_given_row(driver_row)
 
-
+ 
     def driver_health_given_row(self, row):
-        return int(row.find_element(By.CLASS_NAME, "tHealth").text)
+        health = int(row.find_element(By.CLASS_NAME, "tHealth").text)
+        output(health)
+        return health
 
 
     def dt_clear_selections(self):

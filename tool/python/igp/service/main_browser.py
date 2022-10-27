@@ -7,7 +7,7 @@ from selenium.webdriver.support import expected_conditions as ec
 from selenium.webdriver.support.ui import WebDriverWait
 from webdriver_manager.firefox import GeckoDriverManager
 
-from igp.util.tools import output_with_message
+from igp.util.tools import output
 
 
 class BrowserWindow():
@@ -50,22 +50,20 @@ class MainBrowser(webdriver.Firefox):
         new_handle = all_handles[num_windows]
         new_window = BrowserWindow(new_handle)
         self.to_window(new_window)
-        output_with_message("Tab opened")
         return new_window
 
 
     def to_window(self, window: BrowserWindow) -> bool:
         self.switch_to.window(window.handle)
         
-
+    """
     def close_current_window(self):
         try:
             num_windows = len(self.window_handles)
             self.close()
-            output_with_message(f"Tab has been closed")
             self.switch_to.window(self.window_handles[0])
         except Exception:
-            output_with_message("All Tabs closed")
+            output("Tried to close a tab when they were all already closed", log_only=True)"""
 
 
     def close_specific_window(self, window: BrowserWindow):
@@ -73,10 +71,10 @@ class MainBrowser(webdriver.Firefox):
             try:
                 self.to_window(window)
                 self.close()
-                output_with_message(f"Tab has been closed")
+                output(f"Specific tab has been closed")
                 self.switch_to.window(self.window_handles[0])
             except Exception:
-                output_with_message("Could not close Tab")
+                output("Tried to close a tab which did not exist")
 
 
     def try_maximise(self):

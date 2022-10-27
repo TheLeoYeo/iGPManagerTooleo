@@ -6,17 +6,21 @@ from selenium.webdriver.support.ui import WebDriverWait
 
 from igp.service.base_igp_account import BaseIGPaccount
 from igp.util.decorators import igpcommand
+from igp.util.tools import output
 
 
 class CarRepairCommands(BaseIGPaccount):
     repair_page = "https://igpmanager.com/app/p=cars&tab=repair"
     FIX_TYPES = [["c1PartSwap", "c2PartSwap"], ["c1EngSwap", "c2EngSwap"]]
     
-    @igpcommand
-    def fix_cars(self):
-        if self.driver.current_url != self.repair_page:
-            self.driver.get(self.repair_page)
-            
+    
+    @igpcommand(alias="test task") 
+    def just_tried_this(self):
+        output(f'You just tried this with {self.return_name()}')
+        
+    
+    @igpcommand(alias="fix cars", page=repair_page)
+    def fix_cars(self):   
         #fix every part of both cars
         #only fix car condition if below 80%
         self.fix_car(0, 0, 80)
@@ -26,16 +30,12 @@ class CarRepairCommands(BaseIGPaccount):
         self.fix_car(1, 1, 100)
 
 
-    @igpcommand(page=repair_page)
-    def fix_car(self, car_num, fix_type, threshold):
+    @igpcommand(alias="fix car", page=repair_page)
+    def fix_car(self, car_num=0, fix_type=0, threshold=0):
         '''repairs a part of the car
             car_num indicates which car we should look at, 0 for c1, 1 for c2
             bar_num indicates whether to look at car or engine condition
         '''
-        
-        if self.driver.current_url != self.repair_page:
-            self.driver.get(self.repair_page)
-
         car_id = self.FIX_TYPES[fix_type][car_num]
         
         if threshold > 100:
@@ -59,16 +59,13 @@ class CarRepairCommands(BaseIGPaccount):
         fix_car.click()
         
 
-    @igpcommand
+    @igpcommand(alias="car health", page=repair_page)
     def car_health(self, car_num=0, bar_num=0) -> int:
         '''
             returns percentage of car health
             car_num indicates which car we should look at, 0 for c1, 1 for c2
             bar_num indicates whether to look at car (0) or engine (1) condition
         '''
-
-        if self.driver.current_url != self.repair_page:
-            self.driver.get(self.repair_page)
 
         WebDriverWait(self.driver, 20).until(ec.presence_of_element_located((By.ID, "repair")))
         table = self.driver.find_element(By.ID, "repair")
@@ -77,5 +74,5 @@ class CarRepairCommands(BaseIGPaccount):
         health_bar = bar.find_elements(By.TAG_NAME, "div")[0]
         health_text = health_bar.get_attribute("style")
         health = int(health_text.split(": ")[1].split("%")[0])
-        print(health)
+        output(health)
         return health

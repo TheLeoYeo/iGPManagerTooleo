@@ -2,7 +2,7 @@ from igp.service.accounts import AccountIterator
 from igp.service.igpaccount import IGPaccount
 from igp.service.main_browser import MainBrowser
 from igp.util.exceptions import LoginError
-from igp.util.tools import output_with_message
+from igp.util.tools import output
 
 
 def options(accounts: AccountIterator):
@@ -10,7 +10,7 @@ def options(accounts: AccountIterator):
     
     
     func = IGPaccount.commands["car_health"]
-    print(func(account, 0, 0))
+    output(func(account, 0, 0))
     choice = ""
 
     if account:
@@ -47,7 +47,7 @@ def options(accounts: AccountIterator):
             return
         
         elif choice == "health":
-            print(f"Health is: {account.car_health()}")
+            output(f"Health is: {account.car_health()}")
             return
 
         elif choice == "train":
@@ -58,7 +58,7 @@ def options(accounts: AccountIterator):
             try:
                 threshold = int(input("Type minimum health all drivers can have after training"))
             except:
-                print("Please type a number")
+                output("Please type a number")
                 return
             account.train_until_threshold(threshold)
             return
@@ -70,12 +70,12 @@ def options(accounts: AccountIterator):
             return
 
         elif choice == "up":
-            output_with_message("swapped account")
+            output("swapped account")
             accounts.next()
             return
 
         elif choice == "down":
-            output_with_message("swapped account")
+            output("swapped account")
             accounts.prev()
             return
 
@@ -88,14 +88,14 @@ def options(accounts: AccountIterator):
             new_account = IGPaccount(username, password)
             accounts.add_make_current(new_account)
         except LoginError:
-            output_with_message("Username or password was wrong")
+            output("Username or password was wrong")
         return
 
     elif choice == "exit":
-            output_with_message("Quitting")
+            output("Quitting")
             MainBrowser.get_instance().quit()
             return True
         
     else:
-        output_with_message("Invalid command, try again")
+        output("Invalid command, try again")
         return

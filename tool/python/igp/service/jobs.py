@@ -1,12 +1,10 @@
 from igp.service.igpaccount import IGPaccount
 from igp.util.decorators import Command
 from igp.util.events import Event
+from igp.util.tools import output
 
 
 class Job():
-    accounts:list[IGPaccount] = []
-    commands:list[Command] = []
-    
     def __init__(self, accounts:list[IGPaccount], commands:list[Command]):
         self.accounts = accounts
         self.commands = commands
@@ -17,23 +15,35 @@ class Job():
     def perform(self):
         for account in self.accounts:
             for command in self.commands:
-                command.function(account)
+                command.perform(account)
+        self.cancel()
 
 
     def cancel(self):
-        AllJobs.jobs.remove(self)
+        AllJobs.remove(self)
         
               
     def __str__(self):
-        return f"{self.number}: {', '.join([account.__str__() for account in self.accounts])}"
+        return f"{', '.join([account.__str__() for account in self.accounts])}"
+    
+    
+    def help(self):
+        return f"Doing {', '.join([command.__str__() for command in self.commands])}"
 
 
 class AllJobs():
     jobs:list[Job] = []
     listeners = []
     
+    
     def append(job:Job):
+        output("Added job")
         AllJobs.jobs.append(job)
+        AllJobs.changed()
+        
+        
+    def remove(job:Job):
+        AllJobs.jobs.remove(job)
         AllJobs.changed()
 
   
@@ -44,7 +54,10 @@ class AllJobs():
     def changed():
         for listener in AllJobs.listeners:
             listener.handle(Event.JOBS_UPDATED)
-            
+
+    
     def perform():
-        for job in AllJobs.jobs:
+        jobs = AllJobs.jobs.copy()
+        for job in jobs:
+            print(job.help())
             job.perform()
