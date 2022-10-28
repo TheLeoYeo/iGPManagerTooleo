@@ -4,8 +4,9 @@ from PyQt5.QtCore import Qt
 from igp.service.accounts import AccountIterator
 from igp.service.base_igp_account import BaseIGPaccount
 from igp.service.jobs import AllJobs, Job
+from igp.util.tools import output
 from util.utils import join
-from gui.components.custom_widgets import LoginWindow
+from gui.components.custom_widgets import LoginWindow, OutputWindow
 
 UI_Window, UI_BASE = uic.loadUiType(join("gui","views","home.ui", uplevel=2))
 
@@ -31,7 +32,8 @@ class Main(QtWidgets.QMainWindow, UI_Window):
         UI_Window.__init__(self)
         self.setupUi(self)
         self.setAcceptDrops(True)
-        self.addlogin = LoginWindow(self) 
+        self.addlogin = LoginWindow(self)
+        self.output = OutputWindow(self)
         
         self.refreshButton.pressed.connect(self.refresh)
         self.add_account.pressed.connect(self.create_login)
@@ -44,6 +46,7 @@ class Main(QtWidgets.QMainWindow, UI_Window):
         self.tasksCont.refresh()
         self.accountsCont.refresh()
         self.jobsCont.refresh()
+        output("Ready", screen_only=True)
     
     
     def create_login(self):
@@ -57,10 +60,10 @@ class Main(QtWidgets.QMainWindow, UI_Window):
 
 
     def perform(self):
+        self.perform_butt.setText(("PERFORM","PAUSE")[AllJobs.performing])
         self.jobsCont.perform()
         
-    
-        
+           
     def add_jobs(self):
         Job(self.accountsCont.selected.copy(), self.tasksCont.selected.copy())
         

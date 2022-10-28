@@ -18,11 +18,11 @@ def replace_if_gone(file_dir:str, default:str=""):
             file.write(default)
     
 
-def output(message:str, log_only=False):
-    replace_if_gone(log_dir())
-    
-    with open(log_dir(), "a") as log_file:
-        log_file.write(f"[{datetime.now()}] {message}\n")
+def output(message:str, log_only=False, screen_only=False):
+    if not screen_only:
+        replace_if_gone(log_dir())
+        with open(log_dir(), "a") as log_file:
+            log_file.write(f"[{datetime.now()}] {message}\n")
     
     if not log_only:
         Output.output(message)  
@@ -43,3 +43,6 @@ class Output():
     def output(message:str):
         for listener in Output.listeners:
             listener.handle(message)
+    
+    def add_listener(object:Listener):
+        Output.listeners.append(object)

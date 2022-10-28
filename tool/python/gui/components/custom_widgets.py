@@ -1,8 +1,13 @@
-from pickle import NONE
-from PyQt5 import QtWidgets, uic
+from datetime import datetime, timedelta
+import os
+from threading import Thread
+import typing
+
+from PyQt5 import QtWidgets, uic, QtCore
 from PyQt5.QtCore import *
 from PyQt5.QtGui import *
 from PyQt5.QtWidgets import *
+from idna import intranges_contain
 
 from igp.service.accounts import AccountIterator
 from igp.service.base_igp_account import BaseIGPaccount
@@ -11,6 +16,7 @@ from igp.service.jobs import AllJobs, Job
 from igp.util.decorators import Command
 from igp.util.events import Event
 from igp.util.exceptions import LoginDetailsError
+from igp.util.tools import Output
 from util.utils import join
 
 
@@ -97,7 +103,6 @@ class BaseRow(QtWidgets.QFrame):
             self.setToolTip(object.help())
         self.show()
         
-
 
     def setupUi(self):
         self.setCursor(QCursor(Qt.PointingHandCursor))
@@ -262,12 +267,11 @@ class Container(QScrollArea):
         self.noRows = False
         
         
-    def replace_rows(self, objects:list=None):
-        
+    def replace_rows(self, objects:list=None):      
         for child in self.cont.children():
-            
             if not isinstance(child, QVBoxLayout):
                 self.cont.layout().removeWidget(child)
+                
         
         self.noRows = True
         self.add_rows(objects)
@@ -276,9 +280,7 @@ class Container(QScrollArea):
     def row(self, object, parent):
         return BaseRow(object, parent)
 
-
-      
-        
+  
 class DetailsContainer(Container):
     selected:list[IGPaccount] = []
     instance = None
@@ -348,18 +350,23 @@ class JobsContainer(Container):
         
         
     def partial_refresh(self):
-        self.replace_rows(AllJobs.jobs)
+        self.replace_rows(AllJobs.jobs.copy())
 
         
     def perform(self):
-        if len(self.selected) == 0:
-            AllJobs.perform()
+        # self.worker = Worker(self.perform_loop)
+        # self.threadpool.start(self.worker)
+        self.inner_thread = QThread()
+        self.worker = PerformWorker()
+        self.worker.moveToThread(self.inner_thread)
+        self.inner_thread.started.connect(self.worker.run)
+        self.worker.finished.connect(self.inner_thread.quit)
+        self.worker.finished.connect(self.worker.deleteLater)
+        self.worker.progressed.connect(lambda: self.partial_refresh())
+        self.inner_thread.finished.connect(self.inner_thread.deleteLater)
+        self.inner_thread.start()
         
-        else:
-            for job in self.selected:
-                job.perform()
-        
-        
+                     
     def handle(self, event:Event):
         if event == Event.JOBS_UPDATED:
             self.partial_refresh()
@@ -368,9 +375,24 @@ class JobsContainer(Container):
             self.partial_refresh()
     
     
+class PerformWorker(QObject):
+    progressed = pyqtSignal()
+    finished = pyqtSignal()    
+    def run(self):
+        print(f"in JobsCont")
+        jobs = AllJobs.jobs.copy()
+        for job in jobs:
+            job.perform()
+            AllJobs.remove(job)
+            self.progressed.emit()
+        
+        print("out of JC")
+        self.finished.emit()
+    
+    
 class LoginWindow(QFrame):
     def __init__(self, parent:QtWidgets.QFrame=None):
-        QtWidgets.QFrame.__init__(self, parent, objectName=f"baserow{BaseRow.count}")
+        QtWidgets.QFrame.__init__(self, parent, objectName=f"login_window")
         self.setupUi()
         self.hide()
         
@@ -453,4 +475,70 @@ class LoginWindow(QFrame):
         except LoginDetailsError:
             self.warning.setText("DETAILS EMPTY OR INCLUDE\n ; OR \\")            
 
-            
+
+class MessageWorker(QObject):
+    finished = pyqtSignal()
+    DELTA = 3
+    already_in_loop = False 
+    
+    def run(self):
+        self.reset()
+                  
+        end = self.end
+        while datetime.now() < end:
+            end = self.end
+        
+        self.finished.emit()
+    
+      
+    def reset(self):
+        now = datetime.now()
+        self.end = now + timedelta(seconds=self.DELTA)
+
+
+class OutputWindow(QFrame):   
+    def __init__(self, parent:QtWidgets.QFrame=None):
+        QtWidgets.QFrame.__init__(self, parent, objectName="output_window")
+        Output.add_listener(self)
+        self.setupUi()
+        self.hide()
+        self.inner_thread = QtCore.QThread()
+    
+    
+    def setupUi(self):
+        layout = QHBoxLayout()
+        layout.setAlignment(Qt.AlignRight)
+        layout.addStretch(1)
+             
+        self.output = QLabel()
+        self.output.setWordWrap(True)
+        self.output.setObjectName("output")
+        self.output.setAlignment(Qt.AlignCenter)
+        layout.addWidget(self.output)
+        self.setLayout(layout)
+    
+    
+    def handle(self, message:str):
+        self.output.setText(message)
+        self.adjustSize()
+        self.setMinimumWidth(self.parent().width())
+        self.show()
+        
+        try:
+            if self.inner_thread.isRunning():
+                self.worker.reset()
+                return
+        except RuntimeError:
+            pass
+        
+        self.inner_thread = QtCore.QThread()
+        self.worker = MessageWorker()
+        
+        self.worker.moveToThread(self.inner_thread)
+        
+        self.inner_thread.started.connect(self.worker.run)
+        self.worker.finished.connect(self.inner_thread.quit)
+        self.worker.finished.connect(self.worker.deleteLater)
+        self.inner_thread.finished.connect(lambda: self.hide())
+        self.inner_thread.finished.connect(self.inner_thread.deleteLater)
+        self.inner_thread.start()

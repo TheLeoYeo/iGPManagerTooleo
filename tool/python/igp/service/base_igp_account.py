@@ -28,7 +28,6 @@ class BaseIGPaccount():
         except LoginDetailsError as e:
             raise e
                  
-        
         self.driver = MainBrowser.get_instance(minimised)
         self.set_details(username, password)
 
@@ -69,12 +68,12 @@ class BaseIGPaccount():
      
     def login(self):
         if self.logged_in():
-            output(f"Tried to log into of account {self.return_name()} which was already logged in")
+            output(f"Tried to log into of account {self.return_name()} which was already logged in", log_only=True)
             return
 
         if BaseIGPaccount.logged_acc:
             BaseIGPaccount.logged_acc.log_out()
-        output(f"Trying to login to {self.username} account")
+        output(f"Trying to login to {self.username} account", log_only=True)
 
         # create a new tab for this user
         self.window = self.driver.open_window(self.login_url)
@@ -94,18 +93,18 @@ class BaseIGPaccount():
         WebDriverWait(self.driver, 10).until(ec.any_of(login_success, login_fail))
 
         if login_fail(self.driver):
-            output("Details were invalid. Please set them again")
+            output("Details were invalid. Please set them again", log_only=True)
             self.reset_window()
         else:
             BaseIGPaccount.logged_acc = self
-            output(f"Logged in to {self.return_name()}")
+            output(f"Logged in to {self.return_name()}", log_only=True)
             self.confirmed_valid = True
             self.changed(Event.ACCOUNT_NAME_UPDATED)
 
 
     def log_out(self):
         if not self.logged_in():
-            output(f"Tried to log out of account {self.return_name()} which was already logged out")
+            output(f"Tried to log out of account {self.return_name()} which was already logged out", log_only=True)
             return
        
         WebDriverWait(self.driver, 20).until(ec.presence_of_element_located((By.ID, "headerProfile")))
@@ -118,7 +117,7 @@ class BaseIGPaccount():
         BaseIGPaccount.logged_acc = None
         self.reset_window()
         
-        output(f"Logged out of {self.return_name()} account")
+        output(f"Logged out of {self.return_name()} account", log_only=True)
 
 
     def reset_window(self):

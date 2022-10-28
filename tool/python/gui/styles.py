@@ -24,7 +24,7 @@ Container{
     background-color:rgb(40, 40, 40);
 }
 
-ContainerFrame, LoginWindow {
+ContainerFrame, LoginWindow, #output {
     background-color:rgb(50, 50, 50);
 }
 
@@ -33,9 +33,14 @@ QScrollBar{
     background-color: rgb(80,80,80);
 }
 
-Container, LoginWindow {
+Container, LoginWindow, #output {
     border: 2px solid rgb(150, 150, 150);
     border-radius: 4px;
+}
+
+#output{
+    padding: 3px 5px;
+    font-weight:bold;
 }
 
 ConfirmButton {

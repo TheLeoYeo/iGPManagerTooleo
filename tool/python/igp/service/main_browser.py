@@ -71,7 +71,7 @@ class MainBrowser(webdriver.Firefox):
             try:
                 self.to_window(window)
                 self.close()
-                output(f"Specific tab has been closed")
+                output(f"Specific tab has been closed", log_only=True)
                 self.switch_to.window(self.window_handles[0])
             except Exception:
                 output("Tried to close a tab which did not exist")
@@ -86,4 +86,4 @@ class MainBrowser(webdriver.Firefox):
 def exit_handler():
     MainBrowser.get_instance().quit()
 
-# atexit.register(exit_handler)
+atexit.register(exit_handler)

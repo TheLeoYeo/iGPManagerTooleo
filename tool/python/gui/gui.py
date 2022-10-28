@@ -1,4 +1,5 @@
 from threading import Thread
+from igp.service.main_browser import MainBrowser
 
 from util.utils import join
 import sys
@@ -25,12 +26,14 @@ class Main():
         
         self.collector = Thread(args=[window],target=self.collection)
         self.collector.start()
+        
         # Start the event loop of the app
         sys.exit(self.final())
 
 
-    def collection(self, window):
-        AccountIterator.get_instance(minimised=True)
+    def collection(self, window): 
+        MainBrowser.get_instance(minimised=True)
+        AccountIterator.get_instance()
         window.refreshButton.click()
         
         
@@ -40,6 +43,4 @@ class Main():
         
     
 if __name__ == "main":
-    Main().main()
-        
-        
+    Main().main()      
