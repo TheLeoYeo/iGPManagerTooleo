@@ -55,15 +55,6 @@ class MainBrowser(webdriver.Firefox):
 
     def to_window(self, window: BrowserWindow) -> bool:
         self.switch_to.window(window.handle)
-        
-    """
-    def close_current_window(self):
-        try:
-            num_windows = len(self.window_handles)
-            self.close()
-            self.switch_to.window(self.window_handles[0])
-        except Exception:
-            output("Tried to close a tab when they were all already closed", log_only=True)"""
 
 
     def close_specific_window(self, window: BrowserWindow):
@@ -71,7 +62,6 @@ class MainBrowser(webdriver.Firefox):
             try:
                 self.to_window(window)
                 self.close()
-                output(f"Specific tab has been closed", log_only=True)
                 self.switch_to.window(self.window_handles[0])
             except Exception:
                 output("Tried to close a tab which did not exist")

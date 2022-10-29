@@ -51,7 +51,7 @@ def igpcommand(_func:Callable=None, *, page:str=None, alias:str=None):
                 self.driver.get(page)
             
             func(self, *args, **kwargs)
-            output(f"Finished doing task '{_alias}'")
+            output(f"Finished doing task '{_alias}'", log_only=True)
         
         
         argspec = inspect.getfullargspec(func)
