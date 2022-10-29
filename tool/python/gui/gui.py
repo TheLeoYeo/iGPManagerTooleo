@@ -1,16 +1,14 @@
-from threading import Thread
-from igp.service.main_browser import MainBrowser
-
 from util.utils import join
 import sys
 sys.path.append(join("gui","components",uplevel=2))
 
-
 from PyQt5 import QtWidgets
 
+from gui.controllers.load_controller import LoadScreen
 from gui.controllers.main_controller import Main as MainWindow
 from gui.styles import appStyles
 from igp.service.accounts import AccountIterator
+from igp.service.main_browser import MainBrowser
 from igp.util.tools import output
 
 
@@ -20,12 +18,11 @@ class Main():
         # Create app object
         self.app = QtWidgets.QApplication(sys.argv)
         self.app.setStyleSheet(appStyles)
-
-        window = MainWindow() 
-        window.show()
         
-        self.collector = Thread(args=[window],target=self.collection)
-        self.collector.start()
+        self.load = LoadScreen()
+        self.load.show()   
+        
+        self.window = MainWindow(self.load)
         
         # Start the event loop of the app
         sys.exit(self.final())
@@ -33,8 +30,7 @@ class Main():
 
     def collection(self, window): 
         MainBrowser.get_instance(minimised=True)
-        AccountIterator.get_instance()
-        window.refreshButton.click()
+        AccountIterator.get_instance().collect_accounts()
         
         
     def final(self):
