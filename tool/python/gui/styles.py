@@ -2,7 +2,7 @@ APPBG = "rgb(37, 37, 37)"
 
 
 appStyles = """
-#iGPMT {
+QMainWindow {
     background-color: """+APPBG+""";
 }
 
