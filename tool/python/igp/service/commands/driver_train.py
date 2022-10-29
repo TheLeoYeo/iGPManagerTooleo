@@ -13,7 +13,7 @@ class DriverTrainCommands(BaseIGPaccount):
     training_page = "https://igpmanager.com/app/p=training"
 
             
-    @igpcommand(alias="train if above X%", page=training_page)
+    @igpcommand(alias="train if above 50%", page=training_page)
     def train_above_threshold(self, threshold:int=50):
         '''Train if driver is above a certain minimal health value
         ''' 
@@ -63,16 +63,19 @@ class DriverTrainCommands(BaseIGPaccount):
 
 
     @igpcommand(alias="driver health", page=training_page)
-    def driver_health(self, driver_num:int=0):
+    def driver_health(self, driver_num:int=1):
+        if driver_num < 1:
+            driver_num = 1
+            
+        WebDriverWait(self.driver, 20).until(ec.presence_of_element_located((By.ID, "trainTable")))
         table = self.driver.find_element(By.ID, "trainTable")
-        driver_row = table.find_elements(By.CLASS_NAME, "tr")[driver_num]
-        return self.driver_health_given_row(driver_row)
+        driver_row = table.find_elements(By.TAG_NAME, "tr")[driver_num]
+        health = self.driver_health_given_row(driver_row)
+        output(health)
 
  
     def driver_health_given_row(self, row):
-        health = int(row.find_element(By.CLASS_NAME, "tHealth").text)
-        output(health)
-        return health
+        return int(row.find_element(By.CLASS_NAME, "tHealth").text)
 
 
     def dt_clear_selections(self):
