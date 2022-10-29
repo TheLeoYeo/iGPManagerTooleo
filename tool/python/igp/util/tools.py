@@ -19,6 +19,7 @@ def replace_if_gone(file_dir:str, default:str=""):
     
 
 def output(message:str, log_only=False, screen_only=False):
+    message = message.__str__()
     if not screen_only:
         replace_if_gone(log_dir())
         with open(log_dir(), "a") as log_file:
