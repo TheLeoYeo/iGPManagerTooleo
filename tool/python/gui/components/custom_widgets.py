@@ -1,22 +1,19 @@
 from datetime import datetime, timedelta
-import os
-from threading import Thread
-import typing
 
 from PyQt5 import QtWidgets, uic, QtCore
 from PyQt5.QtCore import *
 from PyQt5.QtGui import *
 from PyQt5.QtWidgets import *
-from idna import intranges_contain
 
 from igp.service.accounts import AccountIterator
 from igp.service.base_igp_account import BaseIGPaccount
 from igp.service.igpaccount import IGPaccount
 from igp.service.jobs import AllJobs, Job
 from igp.util.decorators import Command
-from igp.util.events import Event
+from igp.util.events import AccountAddedEvent, AccountNameUpdatedEvent, AccountRemovedEvent, AllContainersReadyEvent, Event, JobAddedEvent, JobRemovedEvent
 from igp.util.exceptions import LoginDetailsError
 from igp.util.tools import Output
+from igp.service.main_browser import MainBrowser
 from util.utils import join
 
 
@@ -139,7 +136,11 @@ class BaseRow(QtWidgets.QFrame):
         
         layout.setStretch(0, 1)
         self.setLayout(layout)
-    
+        
+    def load_updates(self):
+        self.row_name.setText(self.object.__str__())
+        self.setToolTip(self.object.help())
+        
     
     def mousePressEvent(self, e) -> None:
         self.selected = not self.selected
@@ -199,10 +200,37 @@ class JobRow(BaseRow):
 
 class ContainerFrame(QFrame):
     pass
+
+
+class ReadyContainers():
+    ready = False
+    containers = []
+    listeners = []
+    instance = None
+    
+    def get_instance():
+        if ReadyContainers.instance:
+            return ReadyContainers.instance
+        
+        ReadyContainers.instance = ReadyContainers()
+        return ReadyContainers.instance
+    
+    
+    def add_ready(self, container):
+        self.containers.append(container)
+        if len(self.containers) == 1:
+            self.ready = True
+            for listener in self.listeners:
+                listener.handle(AllContainersReadyEvent())
+
+
+    def add_listener(self, object):
+        self.listeners.append(object)
     
 
 class Container(QScrollArea):
     noRows:bool = True
+    sequence:list[QWidget] = []
     
     def __init__(self, *args, **kwargs):
         QScrollArea.__init__(self, *args, **kwargs)
@@ -261,18 +289,38 @@ class Container(QScrollArea):
         row = self.row(object, self.cont)
             
         if not self.noRows:
-            self.cont.layout().addWidget(RowSep.aline(self))
+            rowsep = RowSep.aline(self)
+            self.cont.layout().addWidget(rowsep)
+            self.sequence.append(rowsep)
         
-        self.cont.layout().addWidget(row)      
+        self.cont.layout().addWidget(row) 
+        self.sequence.append(row)     
         self.noRows = False
         
-        
+    
+    def remove_row(self, object):
+        for index, child in enumerate(self.sequence):
+            if isinstance(child, BaseRow) and child.object == object:
+                self.cont.layout().removeWidget(child)
+                self.sequence.remove(child)
+                
+                # remove a seperator if needed
+                if index > 0:
+                    rowsep = self.sequence[index - 1]
+                    self.cont.layout().removeWidget(rowsep)
+                    self.sequence.remove(rowsep)
+
+    def update_row(self, object):
+        for child in self.sequence:
+            if isinstance(child, BaseRow) and child.object == object:
+                child.load_updates()
+
+       
     def replace_rows(self, objects:list=None):      
         for child in self.cont.children():
             if not isinstance(child, QVBoxLayout):
                 self.cont.layout().removeWidget(child)
-                
-        
+                      
         self.noRows = True
         self.add_rows(objects)
     
@@ -282,8 +330,10 @@ class Container(QScrollArea):
 
   
 class DetailsContainer(Container):
+    sequence:list = []
     selected:list[IGPaccount] = []
     instance = None
+    ready_instance:ReadyContainers = None
                 
     def __init__(self, *args, **kwargs):
         Container.__init__(self, *args, **kwargs)
@@ -292,26 +342,64 @@ class DetailsContainer(Container):
         DetailsContainer.instance = self
         
         
+    def set_ready_instance(self, instance):
+        self.ready_instance = instance
+        
+        
     def row(self, account:BaseIGPaccount, parent):
         return DetailRow(account, parent)
 
 
     def handle(self, event: Event):
-        if event == Event.ACCOUNTS_UPDATED: 
-            self.refresh()
+        if not self.ready_instance.ready:
+            return
+            
+        if isinstance(event, AccountAddedEvent): 
+            self.add_row(event.value)
+            
+        elif isinstance(event, AccountRemovedEvent): 
+            self.remove_row(event.value)
         
-        elif event == Event.ACCOUNT_NAME_UPDATED:
-            self.partial_refresh()
+        elif isinstance(event, AccountNameUpdatedEvent):
+            self.update_row(event.value)
+            
             
     def refresh(self):
         self.selected = []
+        self.sequence = []
         self.partial_refresh()
+   
         
     def partial_refresh(self):
         self.replace_rows(AccountIterator.get_instance().accounts)
+       
+        
+    def add_ready(self):
+        self.ready_instance.add_ready(self)
+
+       
+    def collect(self):
+        self.inner_thread = QThread()
+        self.worker = CollectWorker()
+        self.worker.moveToThread(self.inner_thread)
+        self.inner_thread.started.connect(self.worker.run)
+        self.worker.finished.connect(self.add_ready)
+        self.worker.finished.connect(self.inner_thread.quit)
+        self.worker.finished.connect(self.worker.deleteLater)
+        self.inner_thread.finished.connect(self.inner_thread.deleteLater)
+        self.inner_thread.start()
+
+
+class CollectWorker(QObject):
+    finished = pyqtSignal()    
+    def run(self):
+        MainBrowser.get_instance(minimised=True)
+        AccountIterator.get_instance().collect_accounts()
+        self.finished.emit()
     
-    
+
 class TasksContainer(Container):
+    sequence:list = []
     selected:list[Command] = []
     instance = None
     
@@ -326,10 +414,12 @@ class TasksContainer(Container):
    
     def refresh(self):
         self.selected = []
+        self.sequence = []
         self.replace_rows(BaseIGPaccount.commands)
     
        
 class JobsContainer(Container):
+    sequence:list = []
     selected:list[Job] = []
     instance = None
     
@@ -346,6 +436,7 @@ class JobsContainer(Container):
     
     def refresh(self):
         self.selected = []
+        self.sequence = []
         self.partial_refresh()
         
         
@@ -353,40 +444,40 @@ class JobsContainer(Container):
         self.replace_rows(AllJobs.jobs.copy())
 
         
-    def perform(self):
-        # self.worker = Worker(self.perform_loop)
-        # self.threadpool.start(self.worker)
+    def perform(self, button):
         self.inner_thread = QThread()
         self.worker = PerformWorker()
         self.worker.moveToThread(self.inner_thread)
         self.inner_thread.started.connect(self.worker.run)
         self.worker.finished.connect(self.inner_thread.quit)
         self.worker.finished.connect(self.worker.deleteLater)
-        self.worker.progressed.connect(lambda: self.partial_refresh())
         self.inner_thread.finished.connect(self.inner_thread.deleteLater)
+        # self.inner_thread.finished.connect(lambda: button.setEnabled(True))
         self.inner_thread.start()
         
                      
     def handle(self, event:Event):
-        if event == Event.JOBS_UPDATED:
-            self.partial_refresh()
+        if isinstance(event, JobAddedEvent):
+            self.add_row(event.value)
+            
+        elif isinstance(event, JobRemovedEvent): 
+            self.remove_row(event.value)
         
-        elif event == Event.ACCOUNT_NAME_UPDATED:
-            self.partial_refresh()
+        elif isinstance(event, AccountNameUpdatedEvent):
+            for child in self.sequence:
+                if isinstance(child, BaseRow) and event.value in child.object.accounts:
+                    self.update_row(child.object)
     
     
 class PerformWorker(QObject):
     progressed = pyqtSignal()
     finished = pyqtSignal()    
     def run(self):
-        print(f"in JobsCont")
         jobs = AllJobs.jobs.copy()
         for job in jobs:
             job.perform()
             AllJobs.remove(job)
-            self.progressed.emit()
         
-        print("out of JC")
         self.finished.emit()
     
     
@@ -448,8 +539,7 @@ class LoginWindow(QFrame):
         self.warning.setObjectName("warning")
         self.warning.setWordWrap(True)
         self.warning.setAlignment(Qt.AlignCenter)
-        
-               
+                       
         layout.addLayout(formlayout)
         
         self.add_account = ConfirmButton()
@@ -499,19 +589,20 @@ class MessageWorker(QObject):
 class OutputWindow(QFrame):   
     def __init__(self, parent:QtWidgets.QFrame=None):
         QtWidgets.QFrame.__init__(self, parent, objectName="output_window")
-        Output.add_listener(self)
         self.setupUi()
+        Output.add_listener(self)
         self.hide()
         self.inner_thread = QtCore.QThread()
     
     
     def setupUi(self):
+        self.setCursor(QCursor(Qt.PointingHandCursor))
         layout = QHBoxLayout()
         layout.setAlignment(Qt.AlignRight)
         layout.addStretch(1)
              
         self.output = QLabel()
-        self.output.setWordWrap(True)
+        self.output.setWordWrap(False)
         self.output.setObjectName("output")
         self.output.setAlignment(Qt.AlignCenter)
         layout.addWidget(self.output)
@@ -521,7 +612,7 @@ class OutputWindow(QFrame):
     def handle(self, message:str):
         self.output.setText(message)
         self.adjustSize()
-        self.setMinimumWidth(self.parent().width())
+        # self.setMinimumWidth(self.parent().width())
         self.show()
         
         try:
@@ -542,3 +633,15 @@ class OutputWindow(QFrame):
         self.inner_thread.finished.connect(lambda: self.hide())
         self.inner_thread.finished.connect(self.inner_thread.deleteLater)
         self.inner_thread.start()
+
+  
+    def mousePressEvent(self, e) -> None:
+        self.hide()
+    
+    
+    def enterEvent(self, e) -> None:
+        self.setStyleSheet("#output{background-color:rgb(35,35,35);}")
+
+
+    def leaveEvent(self, e) -> None:
+        self.setStyleSheet("#output {background-color:rgb(50, 50, 50);}")
