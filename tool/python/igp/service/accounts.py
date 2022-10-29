@@ -1,8 +1,7 @@
 import atexit
-from os import path
 
 from igp.service.igpaccount import IGPaccount
-from igp.util.events import Event
+from igp.util.events import AccountAddedEvent, AccountNameUpdatedEvent, AccountRemovedEvent, Event
 from igp.util.tools import output, replace_if_gone
 from util.utils import join
 
@@ -27,7 +26,6 @@ class AccountIterator():
         replace_if_gone(self.acc_dir(), self.default_file)
         self.accounts:list[IGPaccount] = []
         self.index = -1
-        self.collect_accounts(minimised)
         
         for account in accounts:
             self.add_account(account)
@@ -40,7 +38,7 @@ class AccountIterator():
         return join(*ACCDIR, uplevel=2)
 
 
-    def collect_accounts(self, minimised=False):
+    def collect_accounts(self, minimised=True):
         with open(self.acc_dir(), "r") as acc_file:
             lines = acc_file.readlines()[1:]
             for index, line in enumerate(lines):
@@ -92,24 +90,21 @@ class AccountIterator():
         if not account:
             return
 
-        unique = True
-        for index, added_account in enumerate(self.accounts):
+        for added_account in self.accounts:
             # password has potentially been updated, replace old account details
             if added_account.username == account.username:
-                self.accounts[index] = account
-                unique = False
-                break
+                added_account.set_details(account.username, account.password)
+                self.changed(AccountNameUpdatedEvent(self, added_account))
+                return
 
-        if unique:
-            self.accounts.append(account)
-            
-        self.changed()
-        
-        
+        self.accounts.append(account)
+        self.changed(AccountAddedEvent(self, account))
+             
+              
     def remove_account(self, account: IGPaccount):
         if account in self.accounts:
             self.accounts.remove(account)
-            self.changed()
+            self.changed(AccountRemovedEvent(self, account))
 
 
     def remove_accounts(self, accounts: list[IGPaccount]):
@@ -130,9 +125,9 @@ class AccountIterator():
         self.listeners.append(object)
         
         
-    def changed(self):
+    def changed(self, event:Event):
         for listener in self.listeners:
-            listener.handle(Event.ACCOUNTS_UPDATED)
+            listener.handle(event)
             
             
 def exit_handler():

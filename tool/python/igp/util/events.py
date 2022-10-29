@@ -1,6 +1,31 @@
 from enum import Enum
 
-class Event(Enum):
-    ACCOUNTS_UPDATED = 0
-    JOBS_UPDATED = 1
-    ACCOUNT_NAME_UPDATED = 2
+class Event():
+    def __init__(self, source=None, value=None):
+        Enum.__init__(self)
+        self.source = source
+        self.value = value
+        
+class AccountsUpdatedEvent(Event):
+    pass
+
+class JobsUpdatedEvent(Event):
+    pass
+
+class JobAddedEvent(Event):
+    pass
+
+class JobRemovedEvent(Event):
+    pass
+
+class AccountNameUpdatedEvent(Event):
+    pass
+
+class AccountRemovedEvent(Event):
+    pass
+
+class AccountAddedEvent(Event):
+    pass
+
+class AllContainersReadyEvent(Event):
+    pass
