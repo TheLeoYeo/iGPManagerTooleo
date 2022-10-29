@@ -1,40 +1,27 @@
-from PyQt5 import QtWidgets, uic, QtCore
-from PyQt5.QtCore import Qt
+from PyQt5 import QtWidgets, uic
 
 from igp.service.accounts import AccountIterator
-from igp.service.base_igp_account import BaseIGPaccount
-from igp.service.jobs import AllJobs, Job
-from igp.util.tools import output
+from igp.service.jobs import Job
+from igp.util.events import AllContainersReadyEvent, Event
 from util.utils import join
-from gui.components.custom_widgets import LoginWindow, OutputWindow
+from gui.components.custom_widgets import LoginWindow, OutputWindow, ReadyContainers
 
 UI_Window, UI_BASE = uic.loadUiType(join("gui","views","home.ui", uplevel=2))
 
 
-class TodoModel(QtCore.QAbstractListModel):
-    def __init__(self, *args, todos=None, **kwargs):
-        super(TodoModel, self).__init__(*args, **kwargs)
-        self.todos: list[BaseIGPaccount] = todos or []
-
-
-    def data(self, index, role):
-        if role == Qt.DisplayRole:
-            text = self.todos[index.row()].username
-            return text
-
-    def rowCount(self, index):
-        return len(self.todos)
-
-
 class Main(QtWidgets.QMainWindow, UI_Window):
-    def __init__(self):
+    def __init__(self, load):
         QtWidgets.QMainWindow.__init__(self)
-        UI_Window.__init__(self)
+        UI_Window.__init__(self) 
         self.setupUi(self)
         self.setAcceptDrops(True)
         self.addlogin = LoginWindow(self)
         self.output = OutputWindow(self)
         
+        self.load = load
+        ReadyContainers.get_instance().add_listener(self)
+        self.accountsCont.set_ready_instance(ReadyContainers.get_instance())
+        self.accountsCont.collect()
         self.refreshButton.pressed.connect(self.refresh)
         self.add_account.pressed.connect(self.create_login)
         self.remove_account.pressed.connect(self.remove_acc)
@@ -46,11 +33,18 @@ class Main(QtWidgets.QMainWindow, UI_Window):
         self.tasksCont.refresh()
         self.accountsCont.refresh()
         self.jobsCont.refresh()
-        output("Ready", screen_only=True)
+        self.output.hide()
     
     
     def create_login(self):
         self.addlogin.show()
+        
+        
+    def handle(self, event:Event):
+        if isinstance(event, AllContainersReadyEvent):
+            self.load.finished.emit()
+            self.show()
+            self.refreshButton.click()
         
         
     def remove_acc(self):
@@ -60,8 +54,8 @@ class Main(QtWidgets.QMainWindow, UI_Window):
 
 
     def perform(self):
-        self.perform_butt.setText(("PERFORM","PAUSE")[AllJobs.performing])
-        self.jobsCont.perform()
+        # self.add_jobs_butt.setEnabled(False)
+        self.jobsCont.perform(self.add_jobs_butt)
         
            
     def add_jobs(self):
