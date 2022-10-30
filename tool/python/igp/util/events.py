@@ -21,6 +21,9 @@ class JobRemovedEvent(Event):
 class AccountNameUpdatedEvent(Event):
     pass
 
+class ConfirmedLogInEvent(Event):
+    pass
+
 class AccountRemovedEvent(Event):
     pass
 

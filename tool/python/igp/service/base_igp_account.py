@@ -6,7 +6,7 @@ from selenium.webdriver.support.ui import WebDriverWait
 from igp.service.main_browser import MainBrowser
 from igp.util.tools import output
 from igp.util.exceptions import LoginDetailsError
-from igp.util.events import AccountNameUpdatedEvent, Event
+from igp.util.events import AccountNameUpdatedEvent, ConfirmedLogInEvent, Event
 
 
 class BaseIGPaccount():
@@ -22,6 +22,7 @@ class BaseIGPaccount():
     
     
     def __init__(self, username:str, password:str, minimised:bool=False):
+        self.initialised = False
         try:
             self.isclean(username)
             self.isclean(password)
@@ -30,6 +31,7 @@ class BaseIGPaccount():
                  
         self.driver = MainBrowser.get_instance(minimised)
         self.set_details(username, password)
+        self.initialised = True
 
 
     def isclean(self, text: str):
@@ -63,7 +65,8 @@ class BaseIGPaccount():
         self.username = username
         self.password = password 
         self.confirmed_valid = False
-        self.changed(AccountNameUpdatedEvent(self, self))
+        if self.initialised:
+            self.changed(AccountNameUpdatedEvent(self, self))
 
      
     def login(self):
@@ -98,8 +101,12 @@ class BaseIGPaccount():
         else:
             BaseIGPaccount.logged_acc = self
             output(f"Logged in to {self.return_name()}", log_only=True)
+            if not self.confirmed_valid:
+                self.confirmed_valid = True
+                self.changed(ConfirmedLogInEvent(self, self))
+            
             self.confirmed_valid = True
-            self.changed(AccountNameUpdatedEvent(self, self))
+            
 
 
     def log_out(self):
