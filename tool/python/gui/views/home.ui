@@ -58,14 +58,14 @@
             <item alignment="Qt::AlignHCenter">
              <widget class="ConfirmButton" name="add_account">
               <property name="text">
-               <string>ADD ACC.</string>
+               <string>Add Acc.</string>
               </property>
              </widget>
             </item>
             <item alignment="Qt::AlignHCenter">
              <widget class="RejectButton" name="remove_account">
               <property name="text">
-               <string>REMOVE ACC.</string>
+               <string>Remove Acc.</string>
               </property>
              </widget>
             </item>
@@ -97,7 +97,7 @@
           <item alignment="Qt::AlignHCenter">
            <widget class="ConfirmButton" name="add_jobs_butt">
             <property name="text">
-             <string>ADD TO JOBS</string>
+             <string>Add to Jobs</string>
             </property>
            </widget>
           </item>
@@ -105,6 +105,9 @@
         </item>
         <item>
          <layout class="QVBoxLayout" name="verticalLayout_3" stretch="0,0,1">
+          <property name="sizeConstraint">
+           <enum>QLayout::SetMaximumSize</enum>
+          </property>
           <item alignment="Qt::AlignHCenter">
            <widget class="Heading" name="jobsHead">
             <property name="text">
@@ -115,12 +118,23 @@
           <item>
            <widget class="JobsContainer" name="jobsCont"/>
           </item>
-          <item alignment="Qt::AlignHCenter">
-           <widget class="ConfirmButton" name="perform_butt">
-            <property name="text">
-             <string>PERFORM</string>
-            </property>
-           </widget>
+          <item>
+           <layout class="QHBoxLayout" name="horizontalLayout_4">
+            <item alignment="Qt::AlignHCenter">
+             <widget class="ConfirmButton" name="perform_butt">
+              <property name="text">
+               <string>Perform</string>
+              </property>
+             </widget>
+            </item>
+            <item alignment="Qt::AlignHCenter">
+             <widget class="RejectButton" name="remove_jobs_butt">
+              <property name="text">
+               <string>Remove Job</string>
+              </property>
+             </widget>
+            </item>
+           </layout>
           </item>
          </layout>
         </item>
@@ -131,7 +145,7 @@
         <item alignment="Qt::AlignHCenter">
          <widget class="ConfirmButton" name="refreshButton">
           <property name="text">
-           <string>REFRESH</string>
+           <string>Refresh</string>
           </property>
           <property name="autoDefault">
            <bool>false</bool>

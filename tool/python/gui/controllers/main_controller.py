@@ -1,7 +1,7 @@
 from PyQt5 import QtWidgets, uic
 
 from igp.service.accounts import AccountIterator
-from igp.service.jobs import Job
+from igp.service.jobs import AllJobs, Job
 from igp.util.events import AllContainersReadyEvent, Event
 from util.utils import join
 from gui.components.custom_widgets import LoginWindow, OutputWindow, ReadyContainers
@@ -26,6 +26,7 @@ class Main(QtWidgets.QMainWindow, UI_Window):
         self.add_account.pressed.connect(self.create_login)
         self.remove_account.pressed.connect(self.remove_acc)
         self.add_jobs_butt.pressed.connect(self.add_jobs)
+        self.remove_jobs_butt.pressed.connect(self.remove_jobs)
         self.perform_butt.pressed.connect(self.perform)
     
       
@@ -54,12 +55,18 @@ class Main(QtWidgets.QMainWindow, UI_Window):
 
 
     def perform(self):
-        # self.add_jobs_butt.setEnabled(False)
-        self.jobsCont.perform(self.add_jobs_butt)
+        self.add_jobs_butt.setEnabled(False)
+        self.remove_jobs_butt.setEnabled(False)
+        self.jobsCont.perform([self.add_jobs_butt, self.remove_jobs_butt])
         
            
     def add_jobs(self):
         Job(self.accountsCont.selected.copy(), self.tasksCont.selected.copy())
+       
+        
+    def remove_jobs(self):
+        for job in self.jobsCont.selected.copy():
+            AllJobs.remove(job)
         
         
     def dragEnterEvent(self, e):
