@@ -32,6 +32,8 @@ class AccountIterator():
             
         if len(self.accounts) >= 0:
             self.index = 0
+            
+        self.collected_accounts = False
 
 
     def acc_dir(self):
@@ -60,8 +62,13 @@ class AccountIterator():
                     if valid:
                         self.add_account(IGPaccount(data[0], data[1], minimised))
                         
+        self.collected_accounts = True
+                        
                                                 
     def update_file(self):
+        if not self.collected_accounts:
+            return
+        
         open(self.acc_dir(), "w").close()
         with open(self.acc_dir(), "a") as acc_file:
             acc_file.write("email;password;\n")
