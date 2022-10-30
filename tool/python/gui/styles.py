@@ -45,12 +45,15 @@ Container, LoginWindow, #output {
 
 ConfirmButton {
     background-color:rgb(48, 223, 62);
-    font-weight: bold;
 }
 
 RejectButton {
     background-color:rgb(221, 63, 63);
+}
+
+ConfirmButton, RejectButton {
     font-weight: bold;
+    padding: 0px 10px;
 }
 
 DefaultButton {
