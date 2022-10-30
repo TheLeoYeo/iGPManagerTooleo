@@ -59,7 +59,6 @@ class CarRepairCommands(BaseIGPaccount):
         fix_car.click()
         
 
-    @igpcommand(alias="car health", page=repair_page)
     def car_health(self, car_num=0, bar_num=0) -> int:
         '''
             returns percentage of car health
@@ -69,10 +68,25 @@ class CarRepairCommands(BaseIGPaccount):
 
         WebDriverWait(self.driver, 20).until(ec.presence_of_element_located((By.ID, "repair")))
         table = self.driver.find_element(By.ID, "repair")
-        car = table.find_elements(By.CLASS_NAME, "eight")[car_num]
+        try:
+            car = table.find_elements(By.CLASS_NAME, "eight")[car_num]
+        except:
+            return "NAN"
+        
         bar = car.find_elements(By.CLASS_NAME, "ratingBar")[bar_num]
         health_bar = bar.find_elements(By.TAG_NAME, "div")[0]
         health_text = health_bar.get_attribute("style")
-        health = int(health_text.split(": ")[1].split("%")[0])
-        output(health)
-        return health
+        return int(health_text.split(": ")[1].split("%")[0])
+
+   
+    @igpcommand(alias="car health", page=repair_page)
+    def all_car_health(self):
+        prefixes = [["Car1", "Eng1"],["Car2","Eng2"]]
+        message = ""
+        for car in range(2):
+            for type in range(2):
+                health = self.car_health(car, type)
+                message += f"{prefixes[car][type]}: {health}, "
+              
+        output(message[:-2])
+    
