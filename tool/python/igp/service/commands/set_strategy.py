@@ -1,13 +1,17 @@
 from enum import Enum
-import time
 
+from selenium.common.exceptions import TimeoutException
 from selenium.webdriver.common.by import By
+from selenium.webdriver import ActionChains
+from selenium.webdriver.remote.webelement import WebElement
 from selenium.webdriver.support import expected_conditions as ec
 from selenium.webdriver.support.ui import WebDriverWait
 
 from igp.service.base_igp_account import BaseIGPaccount
+from igp.service.modifier.modifier import BaseModifier, IntegerField, OptionField
 from igp.util.exceptions import NoSuchPilotError
-from igp.util.tools import output
+from igp.util.tools import click, output
+from igp.util.decorators import igpcommand
 
 
 class Suspension(Enum):
@@ -19,113 +23,97 @@ class Suspension(Enum):
 class SetupCommands(BaseIGPaccount):
     strategy_page = "httpshttps://igpmanager.com/app/p=race&tab=strategy"
     setup_page = "https://igpmanager.com/app/p=race&tab=setup"
-
-
+    ALL_SUSP_TYPES = [Suspension.SOFT, Suspension.NEUTRAL, Suspension.FIRM]
+    
+    @igpcommand(alias="setup all drivers", page=setup_page, help="Sets the setup of all drivers in the account", 
+                modifier=BaseModifier(OptionField("suspension", ALL_SUSP_TYPES, 0), IntegerField("rheight", 1, 50, 20), IntegerField("wlevel", 1, 50, 20)))
     def setup_drivers(self, suspension:Suspension=Suspension.SOFT, rheight:int=20, wlevel:int=20):
-        if not self.logged_in():
-                output("log in first")
-                return
-
-        if self.driver.current_url != self.setup_page:
-            self.driver.get(self.setup_page)
-
-        self.setup_driver(1, suspension, rheight, wlevel)
+        try:
+            for i in range(1):
+                self.setup_driver(1 + i, suspension, rheight, wlevel)
+        except NoSuchPilotError:
+            pass
 
 
+    @igpcommand(alias="setup a driver", page=setup_page, 
+                modifier=BaseModifier(IntegerField("driver", 1, 2), OptionField("suspension", ALL_SUSP_TYPES, 0), IntegerField("rheight", 1, 50, 20), IntegerField("wlevel", 1, 50, 20)))
     def setup_driver(self, driver:int=1, suspension:Suspension=Suspension.SOFT, rheight:int=20, wlevel:int=20):
         """Set setup for a driver
-            1 for driver 1 and 2 for driver 2
-        """
+        1 for driver 1 and 2 for driver 2"""
         
-        if not self.logged_in():
-                output("log in first")
-                return
-
-        if self.driver.current_url != self.setup_page:
-            self.driver.get(self.setup_page)
-
         if driver > 2:
             raise NoSuchPilotError()
 
-        WebDriverWait(self.driver, 20).until(ec.presence_of_element_located((By.ID, f"driver{driver}")))
-
+        try:
+            WebDriverWait(self.driver, 10).until(ec.presence_of_element_located((By.ID, f"driver{driver}")))
+        except TimeoutException:
+            raise NoSuchPilotError()
+        
         form = self.driver.find_element(By.ID, f"d{driver}setup")
         table = form.find_element(By.CLASS_NAME, "linkFill")
         rows = table.find_elements(By.TAG_NAME, "tr")
 
         self.set_suspension(rows[0], suspension)
-        self.set_ride_height(rows[1], rheight)
-        self.set_wing_level(rows[2], wlevel)
+        output(f"suspension set to {suspension.name}", log_only=True)
+        rh = self.set_row_value(rows[1], rheight)
+        output(f"ride height set to {rh}", log_only=True)
+        wl = self.set_row_value(rows[2], wlevel)
+        output(f"wing level set to {wl}", log_only=True)
 
 
-    def set_suspension(row, suspension:Suspension):
+    def set_suspension(self, row:WebElement, suspension:Suspension):
         button = row.find_element(By.CLASS_NAME, "rotateThis")
+        click(button)
         while button.text.upper() != suspension.name:
-            button.click()
+            click(button)
+
+  
+    def set_row_value(self, row:WebElement, value:int) -> int:
+        current_box = row.find_element(By.CLASS_NAME, "num")
         
-              
-    def train_by_threshold(self, threshold):
-        '''
-            Train until driver reaches a certain minimal health value
-        '''
-        if threshold < 0:
-            threshold = 0
+        current = int(current_box.text)
+        if current == value:
+            return current
+               
+        decrement = row.find_element(By.CLASS_NAME, "minus")
+        increment = row.find_element(By.CLASS_NAME, "plus")
+
+        # start by trying to make big, faster change
+
+        action = ActionChains(self.driver)
+        action.click_and_hold(decrement).perform()
+        while "disabled" not in decrement.get_attribute("class") and value < int(current_box.text):
+            pass
+        
+        action.release(decrement).perform()
+        
+        current = int(current_box.text)
+        if current == value:
+            return current
+        
+        action = ActionChains(self.driver)
+        action.click_and_hold(increment).perform()
+        while "disabled" not in decrement.get_attribute("class") and value > int(current_box.text):
+            pass
+        action.release(decrement).perform()
+        
+        current = int(current_box.text)
+        if current == value:
+            return current
+        
+        
+        # make more precise and slower changes    
+        # if clickable and still needs reducing, reduce value
+        while "disabled" not in decrement.get_attribute("class") and value < int(current_box.text):
+            click(decrement)
             
-        WebDriverWait(self.driver, 20).until(ec.presence_of_element_located((By.ID, "trainTable")))
-        table = self.driver.find_element(By.ID, "trainTable")
-
-        driver_rows = table.find_elements(By.TAG_NAME, "tr")[1:]
-
-        self.dt_clear_selections()
-
-        for row in driver_rows:
-            if threshold < self.driver_health_given_row(row):
-                self.dt_select_row(row)
-
-        train_button = self.driver.find_element(By.ID, "trainTrain")
-        train_button.click()
-
-
-    def driver_health(self, driver_num):
-        table = self.driver.find_element(By.ID, "trainTable")
-        driver_row = table.find_elements(By.CLASS_NAME, "tr")[driver_num]
-        return self.driver_health_given_row(driver_row)
-
-
-    def driver_health_given_row(self, row):
-        return int(row.find_element(By.CLASS_NAME, "tHealth").text)
-
-
-    def dt_clear_selections(self):
-        check_input = self.driver.find_element(By.ID, "checkAll")
-        check_container = check_input.find_element(By.XPATH, "./..")
-        check = check_container.find_element(By.TAG_NAME, "label")
-
-        try:
-            check.click()
-        except:
-            time.sleep(1)
-            check.click()
-        # double click may be needed
-
-        train_button = self.driver.find_element(By.ID, "trainTrain")
-        if "disabled" not in train_button.get_attribute("class"):
-            check.click()
-
-
-    def dt_select_row(self, row):
-        try:
-            row.find_element(By.TAG_NAME, "label").click()
-        except:
-            time.sleep(1)
-            row.find_element(By.TAG_NAME, "label").click()
-        
-
-    def train_row(self, row, threshold):
-        if threshold >= self.driver_health_given_row(row):
-            return
-        
-        self.dt_select_row(row)
-        train_button = self.driver.find_element(By.ID, "trainTrain")
-        train_button.click()
-        self.dt_select_row(row)
+        current = int(current_box.text)
+        if current == value:
+            return current
+            
+        # if clickable and still needs reducing, reduce value
+        while "disabled" not in increment.get_attribute("class") and value > int(current_box.text):
+            click(increment)
+            
+        current = int(current_box.text)
+        return current
