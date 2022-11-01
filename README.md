@@ -4,7 +4,8 @@
 
 ## Requirements:
 * Python 3.9 or higher to run the application
-* Don't run it on a potato :)
+* A recent version of Firefox
+* A non-potato-ey computer :)
 
 ## Running the application:
 * If on windows:
@@ -20,7 +21,10 @@
 * Choose certain tasks for these accounts to do which include:
     * Training drivers
     * Fixing engines and parts of cars
-* The tasks will be added to a stack of jobs which the app will go through
+* Add tasks to a stack of jobs
+* Remove selected jobs
+* Perform jobs
+* View a log file in python/iGP/results
 
 ## What it might do some day 100 years from now:
 * Allow the user to setup their cars and set strategies
