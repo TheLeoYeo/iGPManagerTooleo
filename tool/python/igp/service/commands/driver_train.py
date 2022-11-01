@@ -6,17 +6,19 @@ from selenium.webdriver.support.ui import WebDriverWait
 
 from igp.service.base_igp_account import BaseIGPaccount
 from igp.util.decorators import igpcommand
-from igp.util.tools import output
+from igp.util.tools import click, output
+from igp.service.modifier.modifier import BaseModifier, IntegerField
 
 
 class DriverTrainCommands(BaseIGPaccount):
     training_page = "https://igpmanager.com/app/p=training"
 
             
-    @igpcommand(alias="train if above 50%", page=training_page)
+    @igpcommand(alias="train if above X%", page=training_page,
+                modifier=BaseModifier(IntegerField("threshold", 0, 100, 50)))
     def train_above_threshold(self, threshold:int=50):
-        '''Train if driver is above a certain minimal health value
-        ''' 
+        '''Train if driver is above a certain minimal health value.
+        Default is 50%''' 
         
         if threshold < 0:
             threshold = 0
@@ -32,13 +34,17 @@ class DriverTrainCommands(BaseIGPaccount):
                 self.dt_select_row(row)
 
         train_button = self.driver.find_element(By.ID, "trainTrain")
-        train_button.click()
+        click(train_button)
 
 
-    @igpcommand(alias="train until 0%", page=training_page)
+    @igpcommand(alias="train until X%", page=training_page,
+                modifier=BaseModifier(IntegerField("threshold", 0, 100)))
     def train_until_threshold(self, threshold:int=0):
         '''Train while driver is above a certain minimal health value
-        '''       
+        Default is 0%
+        Stops once we hit specified percentage or we have trained
+        more than 12 times'''
+        
         if threshold < 0:
             threshold = 0
             
@@ -58,23 +64,39 @@ class DriverTrainCommands(BaseIGPaccount):
                     more_training = True
 
             train_button = self.driver.find_element(By.ID, "trainTrain")
-            train_button.click()
+            click(train_button)
             count = count + 1
 
 
-    @igpcommand(alias="driver health", page=training_page)
+    @igpcommand(alias="specific driver health", page=training_page,
+                modifier=BaseModifier(IntegerField("driver_num", 1, 10, 1)))
     def driver_health(self, driver_num:int=1):
-        if driver_num < 1:
-            driver_num = 1
+        """Displays the health of a specified driver
+        Specify driver by number, first driver = 1, nth driver = n"""
             
+        WebDriverWait(self.driver, 20).until(ec.presence_of_element_located((By.ID, "trainTable")))
+        table = self.driver.find_element(By.ID, "trainTable")
+        try:
+            driver_row = table.find_elements(By.TAG_NAME, "tr")[driver_num]
+            health = self.driver_health_given_row(driver_row)
+            message = f"Driver {driver_num}: {health}%"
+            output(message)
+        except:
+            output("Error: no such driver")
+            
+        
+    @igpcommand(alias="all driver health", page=training_page)
+    def all_driver_healths(self):
+        """Displays the health of all drivers"""
+        
         WebDriverWait(self.driver, 20).until(ec.presence_of_element_located((By.ID, "trainTable")))
         table = self.driver.find_element(By.ID, "trainTable")
         message = ""
         try:
             for i in range(5):
-                driver_row = table.find_elements(By.TAG_NAME, "tr")[driver_num + i]
+                driver_row = table.find_elements(By.TAG_NAME, "tr")[1 + i]
                 health = self.driver_health_given_row(driver_row)
-                message += f"Driver {driver_num}: {health}%, "
+                message += f"Driver {1 + i}: {health}%, "
         except:
             pass
         
@@ -90,24 +112,16 @@ class DriverTrainCommands(BaseIGPaccount):
         check_container = check_input.find_element(By.XPATH, "./..")
         check = check_container.find_element(By.TAG_NAME, "label")
 
-        try:
-            check.click()
-        except:
-            time.sleep(1)
-            check.click()
-        # double click may be needed
+        click(check)
 
+        # double click may be needed
         train_button = self.driver.find_element(By.ID, "trainTrain")
         if "disabled" not in train_button.get_attribute("class"):
-            check.click()
+            click(check)
 
 
     def dt_select_row(self, row):
-        try:
-            row.find_element(By.TAG_NAME, "label").click()
-        except:
-            time.sleep(1)
-            row.find_element(By.TAG_NAME, "label").click()
+        click(row.find_element(By.TAG_NAME, "label"))
         
 
     def train_row(self, row, threshold):
@@ -116,5 +130,5 @@ class DriverTrainCommands(BaseIGPaccount):
         
         self.dt_select_row(row)
         train_button = self.driver.find_element(By.ID, "trainTrain")
-        train_button.click()
+        click(train_button)
         self.dt_select_row(row)
