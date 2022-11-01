@@ -12,3 +12,6 @@ class NoSuchPilotError(Exception):
 
 class LoginDetailsError(Exception):
     pass
+
+class BadModifierException(Exception):
+    pass
