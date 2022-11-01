@@ -1,5 +1,8 @@
 from datetime import datetime
+import time
 
+from selenium.common.exceptions import ElementClickInterceptedException
+from selenium.webdriver.remote.webelement import WebElement
 from util.utils import join
 
 
@@ -47,3 +50,24 @@ class Output():
     
     def add_listener(object:Listener):
         Output.listeners.append(object)
+        
+        
+def click(button:WebElement, tries = 10):
+    # try to click a maximum of 10 times
+    if tries > 10:
+        tries = 10
+        
+    # try to click button
+    try:
+        button.click()
+    # specifically catch error where stupid curtain appears in front of button
+    except ElementClickInterceptedException:
+        # decrement tries
+        tries -= 1
+        # no more tries, raise the error as there might be a bigger problem here
+        if tries == 0:
+            raise ElementClickInterceptedException
+        
+        # wait an amount of time, try again. Wait longer the more tries we have done
+        time.sleep(0.5 * (11 - tries))
+        click(button, tries)
