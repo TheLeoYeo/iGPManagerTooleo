@@ -1,6 +1,4 @@
-from datetime import datetime, timedelta
-
-from PyQt5 import QtWidgets, uic, QtCore
+from PyQt5 import QtWidgets, uic
 from PyQt5.QtCore import *
 from PyQt5.QtGui import *
 from PyQt5.QtWidgets import *
@@ -14,6 +12,8 @@ from igp.util.events import *
 from igp.util.exceptions import LoginDetailsError
 from igp.util.tools import Output, output
 from igp.service.main_browser import MainBrowser
+from igp.service.modifier.modifier import BaseModifier, Field, IntegerField
+from gui.components.field_component import field_to_component
 from util.utils import join
 
 
@@ -55,29 +55,51 @@ class RowSep(QtWidgets.QFrame, BaseLine):
         return RowSep(parent).line
 
 
+def parent(object, levels = 1):
+    if levels == 0:
+        return object
+    return parent(object.parent(), levels-1)
+
+
 class RowDropDown(QLabel):
     inside = False
-    DEF_STYLES = "padding: 6px;"
+    DEF_STYLES = "RowDropDown{padding: 6px;"
+    END = "}"
     
     def __init__(self, *args, **kwargs):
         QLabel.__init__(self, *args, **kwargs)
-        self.setStyleSheet(f"{self.DEF_STYLES}")
+        self.setStyleSheet(f"{self.DEF_STYLES}{self.END}")
+        self.object = None
+        self.modwidget = ModifierWidget(parent(self, 7))
+    
+    
+    def set_modifier(self, modifier:BaseModifier):
+        self.modwidget.set_modifier(modifier)
+        
+    def set_object(self, object):
+        self.modwidget.set_object(object)
+    
     
     def mousePressEvent(self, e) -> None:
-        self.setStyleSheet(f"{self.DEF_STYLES}background-color:rgba(200, 200, 200, 0.3);")
+        self.setStyleSheet(f"{self.DEF_STYLES}background-color:rgba(200, 200, 200, 0.3);{self.END}")
+        self.modwidget.update()
+        self.modwidget.show()
+            
             
     def mouseReleaseEvent(self, e) -> None:
-        self.setStyleSheet(f"{self.DEF_STYLES}background-color:none;")
+        self.setStyleSheet(f"{self.DEF_STYLES}background-color:none;{self.END}")
         if self.inside:
             self.enterEvent(e)
     
+    
     def enterEvent(self, e) -> None:
         self.inside = True
-        self.setStyleSheet(f"{self.DEF_STYLES}background-color:rgba(20,20,20,0.5);")
+        self.setStyleSheet(f"{self.DEF_STYLES}background-color:rgba(20,20,20,0.5);{self.END}")
+        
         
     def leaveEvent(self, e) -> None:
         self.inside = False
-        self.setStyleSheet(f"{self.DEF_STYLES}background-color:none;")
+        self.setStyleSheet(f"{self.DEF_STYLES}background-color:none;{self.END}")
         
 
 class BaseRow(QtWidgets.QFrame):
@@ -87,7 +109,7 @@ class BaseRow(QtWidgets.QFrame):
     count = 0
     
     def __init__(self, object=None, parent:QtWidgets.QFrame=None):
-        QtWidgets.QFrame.__init__(self, parent, objectName=f"detailrow{BaseRow.count}")
+        QtWidgets.QFrame.__init__(self, parent, objectName=f"baserow{BaseRow.count}")
         BaseRow.count += 1
         self.setupUi()
         
@@ -97,8 +119,8 @@ class BaseRow(QtWidgets.QFrame):
             self.row_name.setText(object.__str__())
             self.row_name.setWordWrap(False)
             self.row_name.setStyleSheet("padding-left: 6px")
+            self.set_second_column(object)
             self.setToolTip(object.help())
-        self.show()
         
 
     def setupUi(self):
@@ -127,15 +149,25 @@ class BaseRow(QtWidgets.QFrame):
         self.row_name.setAlignment(Qt.AlignLeading|Qt.AlignLeft|Qt.AlignVCenter)
         layout.addWidget(self.row_name)
 
-        self.row_dropdown = RowDropDown()
+        self.create_second_column(layout)         
+        
+        layout.setStretch(0, 1)
+        self.setLayout(layout)
+        
+        
+    def create_second_column(self, layout:QHBoxLayout):
+        self.row_dropdown = RowDropDown(self)
         self.row_dropdown.setObjectName(u"row_dropdown")
         self.row_dropdown.setMaximumSize(QSize(30, 30))
         self.row_dropdown.setPixmap(QPixmap(join("gui","images","dropdown.png", uplevel=2)))
         self.row_dropdown.setScaledContents(True)
         layout.addWidget(self.row_dropdown)
         
-        layout.setStretch(0, 1)
-        self.setLayout(layout)
+        
+    def set_second_column(self, object):
+        self.row_dropdown.set_object(object)
+        self.row_dropdown.set_modifier(object.modifier)
+   
         
     def load_updates(self):
         self.row_name.setText(self.object.__str__())
@@ -175,7 +207,7 @@ class DetailRow(BaseRow):
             DetailsContainer.instance.selected.append(self.object)
         else:
             DetailsContainer.instance.selected.remove(self.object)
-            
+           
 
 class TaskRow(BaseRow):
     def selected_event(self):
@@ -183,6 +215,25 @@ class TaskRow(BaseRow):
             TasksContainer.instance.selected.append(self.object)
         else:
             TasksContainer.instance.selected.remove(self.object)
+         
+            
+class FieldRow(BaseRow):
+    def __init__(self, *args, **kwargs):
+        BaseRow.__init__(self, *args, **kwargs)
+        self.setCursor(QCursor(Qt.ArrowCursor))
+        
+    def create_second_column(self, layout:QHBoxLayout):
+        pass
+        
+      
+    def set_second_column(self, field:Field):
+        component = field_to_component(self, field)
+        self.field_edit = component
+        self.layout().addWidget(self.field_edit)
+            
+    
+    def mousePressEvent(self, e) -> None:
+        pass
 
       
 class JobRow(BaseRow):
@@ -231,6 +282,7 @@ class ReadyContainers():
 class Container(QScrollArea):
     noRows:bool = True
     sequence:list[QWidget] = []
+    count = 0
     
     def __init__(self, *args, **kwargs):
         QScrollArea.__init__(self, *args, **kwargs)
@@ -239,7 +291,8 @@ class Container(QScrollArea):
 
 
     def setupUi(self):
-        self.setObjectName("accountsCont")
+        self.setObjectName(f"container{Container.count}")
+        Container.count += 1
         
         self.setVerticalScrollBarPolicy(Qt.ScrollBarAsNeeded)
         self.setWidgetResizable(True)
@@ -320,11 +373,18 @@ class Container(QScrollArea):
                 if len(self.sequence) == 0:
                     self.noRows = True
 
+
     def update_row(self, object):
         for child in self.sequence:
             if isinstance(child, BaseRow) and child.object == object:
                 child.load_updates()
-
+         
+                
+    def update_all(self):
+        for child in self.sequence:
+            if isinstance(child, BaseRow):
+                child.load_updates()
+       
        
     def replace_rows(self, objects:list=None):      
         for child in self.cont.children():
@@ -343,8 +403,8 @@ class Container(QScrollArea):
     
     def row(self, object, parent):
         return BaseRow(object, parent)
-
-  
+    
+    
 class DetailsContainer(Container):
     sequence:list = []
     selected:list[IGPaccount] = []
@@ -387,6 +447,12 @@ class DetailsContainer(Container):
             
     def partial_refresh(self):
         self.replace_rows(AccountIterator.get_instance().accounts)
+        
+        
+    def add_row(self, object):
+        super().add_row(object)
+        if ModifierWidget.shown_modifier:
+            ModifierWidget.shown_modifier.hide()
        
         
     def add_ready(self):
@@ -411,6 +477,36 @@ class CollectWorker(QObject):
         MainBrowser.get_instance(minimised=True)
         AccountIterator.get_instance().collect_accounts()
         self.finished.emit()
+        
+
+class FieldContainer(Container):
+    modifier:BaseModifier = None
+    sequence:list = []
+    selected:list[Field] = []
+    
+    def row(self, field, parent):
+        return FieldRow(field, parent)
+    
+    def partial_refresh(self):
+        if not self.modifier:
+            return
+        
+        self.replace_rows(self.modifier.fields)
+        
+    def is_valid(self):
+        if not self.modifier:
+            return True
+        
+        message = ""
+        for field in self.modifier.fields:
+            if not field.is_valid():
+                message += f"{field.help()}, "
+
+        if message:
+            output(message[:-2])
+            return False
+        
+        return True
     
 
 class TasksContainer(Container):
@@ -449,6 +545,11 @@ class JobsContainer(Container):
         
     def partial_refresh(self):
         self.replace_rows(AllJobs.jobs.copy())
+        
+        
+    def add_row(self, object):
+        super().add_row(object)
+        ModifierWidget.shown_modifier.hide()
 
         
     def perform(self, buttons):
@@ -495,6 +596,78 @@ class PerformWorker(QObject):
             AllJobs.remove(job)
         
         self.finished.emit()
+        
+        
+class ModifierWidget(QFrame):
+    shown_modifier = None
+    count = 0
+    modifier:BaseModifier = None
+    object = None
+    
+    def __init__(self, parent=None):
+        QFrame.__init__(self, parent, objectName=f"mod_window{ModifierWidget.count}")
+        ModifierWidget.count += 1
+        self.setupUi()
+        self.show()
+        
+        
+    def set_modifier(self, modifier:BaseModifier):
+        self.modifier = modifier
+        self.container.modifier = modifier
+        self.container.partial_refresh()
+        
+    def set_object(self, object:BaseModifier):
+        self.object = object
+        self.name.setText(self.object.__str__())
+        
+        
+    def update(self):
+        if not self.object:
+            return
+        self.name.setText(self.object.__str__())
+
+     
+    def setupUi(self):
+        self.setGeometry(QRect(50, 50, 261, 200))
+        
+        sizePolicy = QSizePolicy(QSizePolicy.Expanding, QSizePolicy.Expanding)
+        sizePolicy.setHeightForWidth(self.sizePolicy().hasHeightForWidth())
+        self.setSizePolicy(sizePolicy)
+        layout = QVBoxLayout()
+        layout.setStretch(0,0)
+        layout.setStretch(1,0)
+        layout.setStretch(2,1)
+        
+        self.name = QLabel(self)
+        self.name.setText(self.object.__str__())
+        layout.addWidget(self.name)
+        
+        self.container = FieldContainer(self)
+        self.container.setWidgetResizable(True)
+        layout.addWidget(self.container)
+        
+        self.set = ConfirmButton()
+        self.set.setText("set")
+        self.set.pressed.connect(self.hide)
+        self.set.setCursor(QCursor(Qt.PointingHandCursor))
+        layout.addWidget(self.set, alignment=Qt.AlignHCenter)
+        
+        self.setLayout(layout)
+        
+     
+       
+    def show(self):
+        if ModifierWidget.shown_modifier:
+            ModifierWidget.shown_modifier.hide()
+        ModifierWidget.shown_modifier = self
+        super().show()
+    
+    
+    def hide(self):
+        if not self.container.is_valid():
+            return
+        ModifierWidget.shown_modifier = None
+        super().hide()
     
     
 class LoginWindow(QFrame):
@@ -514,6 +687,7 @@ class LoginWindow(QFrame):
     
     def setupUi(self):
         layout = QVBoxLayout()
+        
         self.setGeometry(QRect(200, 80, 261, 300))
         sizePolicy = QSizePolicy(QSizePolicy.Expanding, QSizePolicy.Expanding)
 
@@ -522,6 +696,7 @@ class LoginWindow(QFrame):
         self.setSizePolicy(sizePolicy)
         
         formlayout = QFormLayout()
+        formlayout.setAlignment(Qt.AlignTop)
         formlayout.setObjectName("formLayout")
         formlayout.setContentsMargins(10, 10, 10, 10)
         
@@ -532,13 +707,13 @@ class LoginWindow(QFrame):
 
         formlayout.setWidget(0, QFormLayout.LabelRole, self.username)
 
-        self.username_inp = QTextEdit(self)
+        self.username_inp = QLineEdit(self)
         self.username_inp.setObjectName("textEdit")
         self.username_inp.setStyleSheet("background-color:white;")
 
         formlayout.setWidget(0, QFormLayout.FieldRole, self.username_inp)
 
-        self.password_inp = QTextEdit(self)
+        self.password_inp = QLineEdit(self)
         self.password_inp.setObjectName("textEdit_2")
         self.password_inp.setStyleSheet("background-color:white;")
 
@@ -577,32 +752,11 @@ class LoginWindow(QFrame):
     def add_account_func(self):
         instance = AccountIterator.get_instance()
         try:
-            account = IGPaccount(self.username_inp.toPlainText(), self.password_inp.toPlainText())
+            account = IGPaccount(self.username_inp.text(), self.password_inp.text())
             self.warning.hide()
             instance.add_account(account)
         except LoginDetailsError:
             self.warning.show()
-            
-
-
-class MessageWorker(QObject):
-    finished = pyqtSignal()
-    DELTA = 3
-    already_in_loop = False 
-    
-    def run(self):
-        self.reset()
-                  
-        end = self.end
-        while datetime.now() < end:
-            end = self.end
-        
-        self.finished.emit()
-    
-      
-    def reset(self):
-        now = datetime.now()
-        self.end = now + timedelta(seconds=self.DELTA)
 
 
 class OutputWindow(QFrame):   
@@ -611,7 +765,6 @@ class OutputWindow(QFrame):
         self.setupUi()
         Output.add_listener(self)
         self.hide()
-        self.inner_thread = QtCore.QThread()
     
     
     def setupUi(self):
@@ -630,28 +783,9 @@ class OutputWindow(QFrame):
     
     def handle(self, message:str):
         self.output.setText(message)
+        self.setToolTip(message)
         self.adjustSize()
         self.show()
-        
-        """
-        try:
-            if self.inner_thread.isRunning():
-                self.worker.reset()
-                return
-        except RuntimeError:
-            pass
-        
-        self.inner_thread = QtCore.QThread()
-        self.worker = MessageWorker()
-        
-        self.worker.moveToThread(self.inner_thread)
-        
-        self.inner_thread.started.connect(self.worker.run)
-        self.worker.finished.connect(self.inner_thread.quit)
-        self.worker.finished.connect(self.worker.deleteLater)
-        self.inner_thread.finished.connect(lambda: self.hide())
-        self.inner_thread.finished.connect(self.inner_thread.deleteLater)
-        self.inner_thread.start()"""
 
   
     def mousePressEvent(self, e) -> None:
@@ -659,7 +793,7 @@ class OutputWindow(QFrame):
     
     
     def enterEvent(self, e) -> None:
-        self.setStyleSheet("#output{background-color:rgb(35,35,35);}")
+        self.setStyleSheet("#output{background-color:rgba(35, 35, 35, 0.4);}")
 
 
     def leaveEvent(self, e) -> None:
