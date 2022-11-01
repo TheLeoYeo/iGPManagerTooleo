@@ -4,14 +4,16 @@ from selenium.webdriver.support import expected_conditions as ec
 from selenium.webdriver.support.ui import WebDriverWait
 
 from igp.service.main_browser import MainBrowser
-from igp.util.tools import output
+from igp.util.tools import click, output
 from igp.util.exceptions import LoginDetailsError
 from igp.util.events import AccountNameUpdatedEvent, ConfirmedLogInEvent, Event
+from igp.service.modifier.modifier import BaseModifier
 
 
 class BaseIGPaccount():
     listeners:list = []
     commands = []
+    modifier = BaseModifier()
     username: str = ""
     password: str = ""
     driver: MainBrowser = None
@@ -108,19 +110,19 @@ class BaseIGPaccount():
             self.confirmed_valid = True
             
 
-
     def log_out(self):
         if not self.logged_in():
             output(f"Tried to log out of account {self.return_name()} which was already logged out", log_only=True)
             return
        
         WebDriverWait(self.driver, 20).until(ec.presence_of_element_located((By.ID, "headerProfile")))
-        self.driver.find_element(By.ID, "headerProfile").click()
+        click(self.driver.find_element(By.ID, "headerProfile"))
+
         WebDriverWait(self.driver, 20).until(ec.presence_of_element_located((By.ID, "mLogout")))
-        self.driver.find_element(By.ID, "mLogout").click()
+        click(self.driver.find_element(By.ID, "mLogout"))
         WebDriverWait(self.driver, 20).until(ec.presence_of_element_located((By.CLASS_NAME, "btn")))
         logout_confirm = self.driver.find_elements(By.CLASS_NAME, "btn")[-1]
-        logout_confirm.click()
+        click(logout_confirm)
         BaseIGPaccount.logged_acc = None
         self.reset_window()
         
