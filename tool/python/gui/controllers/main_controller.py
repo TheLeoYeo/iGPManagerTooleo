@@ -3,6 +3,7 @@ from PyQt5 import QtWidgets, uic
 from igp.service.accounts import AccountIterator
 from igp.service.jobs import AllJobs, Job
 from igp.util.events import AllContainersReadyEvent, Event
+from igp.util.tools import output
 from util.utils import join
 from gui.components.custom_widgets import LoginWindow, OutputWindow, ReadyContainers
 
@@ -34,7 +35,6 @@ class Main(QtWidgets.QMainWindow, UI_Window):
         self.tasksCont.refresh()
         self.accountsCont.refresh()
         self.jobsCont.refresh()
-        self.output.hide()
     
     
     def create_login(self):
@@ -65,6 +65,9 @@ class Main(QtWidgets.QMainWindow, UI_Window):
        
         
     def remove_jobs(self):
+        if len(self.jobsCont.selected) == 0:
+            output("Select a job first",screen_only=True)
+            
         for job in self.jobsCont.selected.copy():
             AllJobs.remove(job)
         
