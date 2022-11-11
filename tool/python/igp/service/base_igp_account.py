@@ -132,6 +132,12 @@ class BaseIGPaccount():
     def reset_window(self):
         self.driver.close_specific_window(self.window)
         self.window = None
+    
+    
+    def hit_save(self):
+        WebDriverWait(self.driver, 20).until(ec.presence_of_element_located((By.ID, "action")))
+        save = self.driver.find_element(By.ID, "action")
+        click(save)
         
 
     def close_message(self):
