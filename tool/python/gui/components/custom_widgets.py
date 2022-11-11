@@ -12,7 +12,7 @@ from igp.util.events import *
 from igp.util.exceptions import LoginDetailsError
 from igp.util.tools import Output, output
 from igp.service.main_browser import MainBrowser
-from igp.service.modifier.modifier import BaseModifier, Field, IntegerField
+from igp.service.modifier.modifier import BaseModifier, Field
 from gui.components.field_component import field_to_component
 from util.utils import join
 
@@ -398,6 +398,8 @@ class Container(QScrollArea):
     def refresh(self):
         self.selected = []
         self.sequence = []
+        if ModifierWidget.shown_modifier:
+            ModifierWidget.shown_modifier.hide()
         self.partial_refresh()
     
     
