@@ -26,11 +26,6 @@ class Main():
         
         # Start the event loop of the app
         sys.exit(self.final())
-
-
-    def collection(self, window): 
-        MainBrowser.get_instance(minimised=True)
-        AccountIterator.get_instance().collect_accounts()
         
         
     def final(self):

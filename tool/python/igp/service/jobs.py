@@ -5,6 +5,7 @@ from igp.util.tools import output
 
 
 class Job():
+    modifier = None
     def __init__(self, accounts:list[IGPaccount], commands:list[Command]):
         if len(accounts) == 0:
             output("Select at least one account")

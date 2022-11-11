@@ -5,7 +5,7 @@ from igp.service.jobs import AllJobs, Job
 from igp.util.events import AllContainersReadyEvent, Event
 from igp.util.tools import output
 from util.utils import join
-from gui.components.custom_widgets import LoginWindow, OutputWindow, ReadyContainers
+from gui.components.custom_widgets import LoginWindow, ModifierWidget, OutputWindow, ReadyContainers
 
 UI_Window, UI_BASE = uic.loadUiType(join("gui","views","home.ui", uplevel=2))
 
