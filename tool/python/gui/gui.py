@@ -7,8 +7,6 @@ from PyQt5 import QtWidgets
 from gui.controllers.load_controller import LoadScreen
 from gui.controllers.main_controller import Main as MainWindow
 from gui.styles import appStyles
-from igp.service.accounts import AccountIterator
-from igp.service.main_browser import MainBrowser
 from igp.util.tools import output
 
 

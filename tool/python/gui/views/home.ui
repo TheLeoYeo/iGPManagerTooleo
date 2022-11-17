@@ -174,30 +174,30 @@
   <customwidget>
    <class>ConfirmButton</class>
    <extends>QPushButton</extends>
-   <header>custom_widgets</header>
+   <header>buttons</header>
   </customwidget>
   <customwidget>
    <class>DetailsContainer</class>
    <extends>QScrollArea</extends>
-   <header>custom_widgets</header>
+   <header>details_container</header>
    <container>1</container>
   </customwidget>
   <customwidget>
    <class>TasksContainer</class>
    <extends>QScrollArea</extends>
-   <header>custom_widgets</header>
+   <header>tasks_container</header>
    <container>1</container>
   </customwidget>
   <customwidget>
    <class>JobsContainer</class>
    <extends>QScrollArea</extends>
-   <header>custom_widgets</header>
+   <header>jobs_container</header>
    <container>1</container>
   </customwidget>
   <customwidget>
    <class>RejectButton</class>
    <extends>QPushButton</extends>
-   <header>custom_widgets</header>
+   <header>buttons</header>
   </customwidget>
  </customwidgets>
  <resources/>

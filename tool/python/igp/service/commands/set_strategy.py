@@ -1,6 +1,5 @@
 from enum import Enum
 
-from selenium.common.exceptions import TimeoutException
 from selenium.webdriver.common.by import By
 from selenium.webdriver import ActionChains
 from selenium.webdriver.remote.webelement import WebElement

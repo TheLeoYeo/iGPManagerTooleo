@@ -1,15 +1,16 @@
 from PyQt5 import QtWidgets, uic
 
+from gui.components.output_window import OutputWindow
+from gui.components.login_window import LoginWindow
+from gui.gui_util.ready_containers import ReadyContainers
 from igp.service.accounts import AccountIterator
 from igp.service.jobs import AllJobs, Job
 from igp.util.events import AllContainersReadyEvent, Event
 from igp.util.tools import output
 from util.utils import join
-from gui.components.custom_widgets import LoginWindow, ModifierWidget, OutputWindow, ReadyContainers
+
 
 UI_Window, UI_BASE = uic.loadUiType(join("gui","views","home.ui", uplevel=2))
-
-
 class Main(QtWidgets.QMainWindow, UI_Window):
     def __init__(self, load):
         QtWidgets.QMainWindow.__init__(self)
