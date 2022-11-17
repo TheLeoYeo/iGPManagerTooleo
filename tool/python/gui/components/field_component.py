@@ -104,6 +104,7 @@ class FieldButton(QLabel):
     def mousePressEvent(self, e) -> None:
         self.setStyleSheet(f"{self.DEF_STYLES}background-color:rgba(200, 200, 200, 0.3);{self.END}")
         self.on_click()
+           
             
     def mouseReleaseEvent(self, e) -> None:
         self.setStyleSheet(f"{self.DEF_STYLES}background-color:none;{self.END}")
