@@ -143,6 +143,20 @@
       <item>
        <layout class="QHBoxLayout" name="horizontalLayout_2">
         <item alignment="Qt::AlignHCenter">
+         <widget class="ConfirmButton" name="turboModeButton">
+          <property name="text">
+           <string>Turbo: OFF</string>
+          </property>
+         </widget>
+        </item>
+        <item alignment="Qt::AlignHCenter">
+         <widget class="ConfirmButton" name="logsButton">
+          <property name="text">
+           <string>Logs</string>
+          </property>
+         </widget>
+        </item>
+        <item alignment="Qt::AlignHCenter">
          <widget class="ConfirmButton" name="refreshButton">
           <property name="text">
            <string>Refresh</string>
