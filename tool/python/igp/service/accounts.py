@@ -60,7 +60,7 @@ class AccountIterator():
                             break
 
                     if valid:
-                        self.add_account(IGPaccount(data[0], data[1], minimised))
+                        self.add_account(IGPaccount(data[0], data[1]))
                         
         self.collected_accounts = True
                         

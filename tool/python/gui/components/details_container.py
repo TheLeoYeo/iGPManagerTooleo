@@ -77,7 +77,7 @@ class DetailsContainer(Container):
 class CollectWorker(QObject):
     finished = pyqtSignal()    
     def run(self):
-        MainBrowser.get_instance(minimised=True)
+        MainBrowser.get_instance()
         AccountIterator.get_instance().collect_accounts()
         self.finished.emit()
 

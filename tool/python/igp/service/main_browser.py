@@ -10,6 +10,8 @@ from webdriver_manager.firefox import GeckoDriverManager
 from igp.util.tools import output
 
 
+OPEN_MINIMISED = True
+
 class BrowserWindow():
     handle: str = None
 
@@ -24,9 +26,9 @@ class MainBrowser(webdriver.Firefox):
     stay_minimised = False
 
     @staticmethod
-    def get_instance(minimised:bool=False):
+    def get_instance():
         if not MainBrowser.winstance:
-            MainBrowser.winstance = MainBrowser(minimised)
+            MainBrowser.winstance = MainBrowser(OPEN_MINIMISED)
         
         return MainBrowser.winstance
     

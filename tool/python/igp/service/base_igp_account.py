@@ -23,7 +23,7 @@ class BaseIGPaccount():
     login_url = "https://igpmanager.com/app/p=login"
     
     
-    def __init__(self, username:str, password:str, minimised:bool=False):
+    def __init__(self, username:str, password:str):
         self.initialised = False
         try:
             self.isclean(username)
@@ -31,7 +31,7 @@ class BaseIGPaccount():
         except LoginDetailsError as e:
             raise e
                  
-        self.driver = MainBrowser.get_instance(minimised)
+        self.driver = MainBrowser.get_instance()
         self.set_details(username, password)
         self.initialised = True
 
