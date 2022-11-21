@@ -6,6 +6,7 @@ from gui.components.buttons import *
 from igp.service.accounts import AccountIterator
 from igp.service.igpaccount import IGPaccount
 from igp.util.exceptions import LoginDetailsError
+from igp.util.tools import output
 
 
 class LoginWindow(QFrame):
@@ -26,7 +27,7 @@ class LoginWindow(QFrame):
     def setupUi(self):
         layout = QVBoxLayout()
         
-        self.setGeometry(QRect(200, 80, 261, 300))
+        self.setGeometry(QRect(200, 80, 220, 300))
         sizePolicy = QSizePolicy(QSizePolicy.Expanding, QSizePolicy.Expanding)
 
         self.setMaximumHeight(220)
@@ -63,14 +64,6 @@ class LoginWindow(QFrame):
         self.password.setObjectName("password")
 
         formlayout.setWidget(1, QFormLayout.LabelRole, self.password)
-        
-        self.warning = QLabel()
-        self.warning.hide()
-        self.warning.setText("DETAILS EMPTY OR INCLUDE\n ; OR \\")            
-        self.warning.setObjectName("warning")
-        self.warning.setWordWrap(True)
-        self.warning.setAlignment(Qt.AlignCenter)
-                       
         layout.addLayout(formlayout)
         
         self.add_account = ConfirmButton()
@@ -83,7 +76,6 @@ class LoginWindow(QFrame):
         self.close.pressed.connect(self.hide)
         layout.addWidget(self.close, alignment=Qt.AlignHCenter)
         
-        layout.addWidget(self.warning)
         self.setLayout(layout)
         
         
@@ -91,7 +83,6 @@ class LoginWindow(QFrame):
         instance = AccountIterator.get_instance()
         try:
             account = IGPaccount(self.username_inp.text(), self.password_inp.text())
-            self.warning.hide()
             instance.add_account(account)
         except LoginDetailsError:
-            self.warning.show()
+            output("DETAILS EMPTY OR INCLUDE ; OR \\")
