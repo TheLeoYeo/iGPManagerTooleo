@@ -24,7 +24,7 @@ Container{
     background-color:rgb(40, 40, 40);
 }
 
-ContainerFrame, LoginWindow, ModifierWidget, #output {
+ContainerFrame, LoginWindow, LogsWindow, ConfirmWindow, ModifierWidget, #output {
     background-color:rgb(50, 50, 50);
 }
 
@@ -33,7 +33,7 @@ QScrollBar{
     background-color: rgb(80,80,80);
 }
 
-Container, LoginWindow, ModifierWidget, #output {
+Container, LoginWindow, LogsWindow, ConfirmWindow, ModifierWidget, #output {
     border: 2px solid rgb(150, 150, 150);
     border-radius: 4px;
 }
