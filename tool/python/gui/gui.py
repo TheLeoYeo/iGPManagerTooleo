@@ -21,13 +21,15 @@ class Main():
         self.load.show()   
         
         self.window = MainWindow(self.load)
-        
-        # Start the event loop of the app
+           
         sys.exit(self.final())
         
         
     def final(self):
+        # Start the event loop of the app
         self.app.exec()
+        
+        # app stopped executing, exit the app
         output("Exited application\n", log_only=True)
         
     
