@@ -4,10 +4,13 @@ from gui.components.output_window import OutputWindow
 from gui.components.login_window import LoginWindow
 from gui.components.logs_window import LogsWindow
 from gui.gui_util.ready_containers import ReadyContainers
+from gui.gui_util.window_size import read_size, update_size as US
 from igp.service.accounts import AccountIterator
+from igp.service.commands.tasks import Category
 from igp.service.jobs import AllJobs, Job
 from igp.util.events import AllContainersReadyEvent, Event
 from igp.util.tools import output
+from igp.util.turbomode import TurboMode
 from util.utils import join
 
 
@@ -34,16 +37,54 @@ class Main(QtWidgets.QMainWindow, UI_Window):
         self.turboModeButton.pressed.connect(self.toggle_turbo)
         self.logsButton.pressed.connect(self.show_logs)
         self.perform_butt.pressed.connect(self.perform)
+        self.task_left_butt.on_click = self.left
+        self.task_right_butt.on_click = self.right
+        self.fix_size()
+        self.update_task_header()
+
+
+    def closeEvent(self, *args, **kwargs):
+        self.update_size()
+        super().closeEvent(*args, **kwargs)
+        
     
-      
+    def update_size(self):
+        size = self.size()
+        width, height = size.width(), size.height()
+        US(height, width)
+        
+    
+    def fix_size(self):
+        try:
+            dim = read_size()
+            self.resize(dim["width"], dim["height"])
+        except ValueError:
+            output("Something is wrong with the win_size.ini file. Please fix", log_only=True)
+        
+
     def refresh(self):
         self.tasksCont.refresh()
         self.accountsCont.refresh()
         self.jobsCont.refresh()
     
     
+    def left(self):
+        self.tasksCont.dec_category()
+        self.update_task_header()
+        
+    
+    def right(self):
+        self.tasksCont.inc_category()
+        self.update_task_header()
+    
+    
     def create_login(self):
         self.addlogin.show()
+        
+    
+    def update_task_header(self):
+        category:Category = self.tasksCont.category()
+        self.task_header.setText(category.name)
         
     
     def show_logs(self):
@@ -71,8 +112,8 @@ class Main(QtWidgets.QMainWindow, UI_Window):
         
         
     def toggle_turbo(self):
-        self.jobsCont.toggle_turbo()
-        tm = ("OFF", "ON")[self.jobsCont.turbo_enabled()]
+        TurboMode.toggle_turbo()
+        tm = ("OFF", "ON")[TurboMode.turbo]
         self.turboModeButton.setText(f"Turbo: {tm}")
     
     
@@ -97,4 +138,3 @@ class Main(QtWidgets.QMainWindow, UI_Window):
         widget:QtWidgets.QFrame = e.source()
         size = widget.size()
         widget.setGeometry(pos.x(), pos.y(), size.width(), size.height())
-        
