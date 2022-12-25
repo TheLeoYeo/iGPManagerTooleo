@@ -16,7 +16,6 @@ class JobsContainer(Container):
     sequence:list = []
     selected:list[Job] = []
     instance = None
-    turbo_mode = False
     
     def __init__(self, *args, **kwargs):
         Container.__init__(self, *args, **kwargs)
@@ -66,13 +65,7 @@ class JobsContainer(Container):
             for child in self.sequence:
                 if isinstance(child, BaseRow) and event.value in child.object.accounts:
                     self.update_row(child.object)
-                
-                    
-    def toggle_turbo(self):
-        JobsContainer.turbo_mode = not JobsContainer.turbo_mode
-    
-    def turbo_enabled(self):
-        return JobsContainer.turbo_mode
+
     
     
 class PerformWorker(QObject):
@@ -82,11 +75,6 @@ class PerformWorker(QObject):
     def run(self):
         jobs = AllJobs.jobs.copy()
         for job in jobs:
-            if not JobsContainer.turbo_mode:
-                output("Waiting")
-                time.sleep(5)
-                output("Go!!!")
-                
             job.perform()
             AllJobs.remove(job)
         
