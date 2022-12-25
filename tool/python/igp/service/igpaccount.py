@@ -6,3 +6,11 @@ from igp.service.commands.set_strategy import StrategyCommands
 
 class IGPaccount(CarRepairCommands, DriverTrainCommands, SetupCommands, StrategyCommands):
     pass
+
+
+def no_account():
+    return "N/A"
+
+#hard coded monitor account, 
+MONITOR_ACCOUNT = IGPaccount("leobot@bot.com","botForLeosMonitoring")
+MONITOR_ACCOUNT.return_name = no_account
