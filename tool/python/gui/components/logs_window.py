@@ -4,7 +4,7 @@ from PyQt5.QtWidgets import *
 
 from gui.components.buttons import *
 from gui.components.logs_container import LogsContainer
-from igp.util.tools import log_dir, output
+from igp.util.tools import LOGDIR
 
 
 
@@ -15,7 +15,7 @@ class LogsWindow(QFrame):
         self.update_text()
         self.hide()
         
-        
+    '''
     def mousePressEvent(self, e) -> None:
         self.hide()
     
@@ -25,17 +25,21 @@ class LogsWindow(QFrame):
 
 
     def leaveEvent(self, e) -> None:
-        self.setStyleSheet("LogsWindow{background-color:rgb(50, 50, 50);}")
+        self.setStyleSheet("LogsWindow{background-color:rgb(50, 50, 50);}")'''
     
     
     def setupUi(self):
-        self.setCursor(QCursor(Qt.PointingHandCursor))
         layout = QVBoxLayout()
         
         self.setGeometry(QRect(180, 20, 400, 400))
 
         self.setMaximumWidth(400)
         self.setMaximumHeight(300)
+        
+        self.close_button = RejectButton()
+        self.close_button.setText("X")
+        self.close_button.pressed.connect(self.hide)
+        layout.addWidget(self.close_button, alignment=Qt.AlignRight)
         
         self.container = LogsContainer()
         layout.addWidget(self.container)
@@ -45,20 +49,21 @@ class LogsWindow(QFrame):
         self.clear_button.setText("Clear")
         self.clear_button.pressed.connect(self.confirm_window.show)
         layout.addWidget(self.clear_button, alignment=Qt.AlignHCenter)
-        
-        
+             
         self.setLayout(layout)
         
         
     def show(self):
         super().show()
         self.update_text()
+        self.setStyleSheet("LogsWindow{background-color:rgb(50, 50, 50);}")
     
     
     def update_text(self):
         message = ""
-        with open(log_dir(), "r") as log_file:
-            lines = log_file.readlines()[-10:]
+        with open(LOGDIR, "r") as log_file:
+            lines = log_file.readlines()
+            lines.reverse()
             for line in lines:
                 message += line
         
@@ -66,7 +71,7 @@ class LogsWindow(QFrame):
         
         
     def clear_logs(self):
-        open(log_dir(), "w").close()
+        open(LOGDIR, "w").close()
         self.confirm_window.hide()
         self.update_text()
         
