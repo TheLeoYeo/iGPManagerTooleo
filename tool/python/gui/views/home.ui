@@ -78,18 +78,35 @@
           <property name="sizeConstraint">
            <enum>QLayout::SetMaximumSize</enum>
           </property>
-          <item alignment="Qt::AlignHCenter">
-           <widget class="Heading" name="label">
-            <property name="sizePolicy">
-             <sizepolicy hsizetype="Maximum" vsizetype="Maximum">
-              <horstretch>0</horstretch>
-              <verstretch>0</verstretch>
-             </sizepolicy>
-            </property>
-            <property name="text">
-             <string>Tasks</string>
-            </property>
-           </widget>
+          <item>
+           <layout class="QHBoxLayout" name="horizontalLayout_5">
+            <item alignment="Qt::AlignLeft">
+             <widget class="LeftButton" name="task_left_butt"/>
+            </item>
+            <item alignment="Qt::AlignTop">
+             <widget class="Heading" name="task_header">
+              <property name="sizePolicy">
+               <sizepolicy hsizetype="Maximum" vsizetype="Maximum">
+                <horstretch>0</horstretch>
+                <verstretch>0</verstretch>
+               </sizepolicy>
+              </property>
+              <property name="text">
+               <string>Tasks</string>
+              </property>
+              <property name="alignment">
+               <set>Qt::AlignLeading|Qt::AlignLeft|Qt::AlignTop</set>
+              </property>
+             </widget>
+            </item>
+            <item alignment="Qt::AlignRight">
+             <widget class="RightButton" name="task_right_butt">
+              <property name="alignment">
+               <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
+              </property>
+             </widget>
+            </item>
+           </layout>
           </item>
           <item>
            <widget class="TasksContainer" name="tasksCont"/>
@@ -212,6 +229,16 @@
    <class>RejectButton</class>
    <extends>QPushButton</extends>
    <header>buttons</header>
+  </customwidget>
+  <customwidget>
+   <class>LeftButton</class>
+   <extends>QLabel</extends>
+   <header>custom_widgets</header>
+  </customwidget>
+  <customwidget>
+   <class>RightButton</class>
+   <extends>QLabel</extends>
+   <header>custom_widgets</header>
   </customwidget>
  </customwidgets>
  <resources/>
