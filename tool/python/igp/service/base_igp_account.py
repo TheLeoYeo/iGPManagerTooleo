@@ -4,10 +4,11 @@ from selenium.webdriver.support import expected_conditions as ec
 from selenium.webdriver.support.ui import WebDriverWait
 
 from igp.service.main_browser import MainBrowser
-from igp.util.tools import click, output
+from igp.service.modifier.modifier import BaseModifier
 from igp.util.exceptions import LoginDetailsError
 from igp.util.events import AccountNameUpdatedEvent, ConfirmedLogInEvent, Event
-from igp.service.modifier.modifier import BaseModifier
+from igp.util.tools import click, output
+from igp.util.turbomode import turbo_wait
 
 
 class BaseIGPaccount():
@@ -82,6 +83,7 @@ class BaseIGPaccount():
 
         # create a new tab for this user
         self.window = self.driver.open_window(self.login_url)
+        turbo_wait()
         WebDriverWait(self.driver, 20).until(ec.presence_of_element_located((By.ID, "loginUsername")))
         elemUser = self.driver.find_element(By.ID, "loginUsername")
         WebDriverWait(self.driver, 20).until(ec.presence_of_element_located((By.ID, "loginPassword")))
@@ -91,6 +93,7 @@ class BaseIGPaccount():
         elemUser.send_keys(self.username)
         elemPW.send_keys(self.password)
         elemPW.send_keys(Keys.RETURN)
+        turbo_wait()
 
         login_success = ec.visibility_of_element_located((By.ID, "header"))
         login_fail = ec.any_of(ec.presence_of_element_located((By.XPATH, "//*[contains(text(),'not found or is inactive')]")),
@@ -125,6 +128,7 @@ class BaseIGPaccount():
         click(logout_confirm)
         BaseIGPaccount.logged_acc = None
         self.reset_window()
+        turbo_wait()
         
         output(f"Logged out of {self.return_name()} account", log_only=True)
 
@@ -138,6 +142,7 @@ class BaseIGPaccount():
         WebDriverWait(self.driver, 20).until(ec.presence_of_element_located((By.ID, "action")))
         save = self.driver.find_element(By.ID, "action")
         click(save)
+        turbo_wait()
         
 
     def close_message(self):
@@ -162,3 +167,6 @@ class BaseIGPaccount():
     
     def help(self) -> str:
         return self.__str__()
+
+
+
