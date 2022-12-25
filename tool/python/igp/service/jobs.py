@@ -1,5 +1,5 @@
-from igp.service.igpaccount import IGPaccount
-from igp.util.decorators import Command
+from igp.service.igpaccount import MONITOR_ACCOUNT, IGPaccount
+from igp.util.decorators import Command, CommandType
 from igp.util.events import Event, JobAddedEvent, JobRemovedEvent
 from igp.util.tools import output
 
@@ -7,14 +7,31 @@ from igp.util.tools import output
 class Job():
     modifier = None
     def __init__(self, accounts:list[IGPaccount], commands:list[Command]):
-        if len(accounts) == 0:
-            output("Select at least one account")
-            return
-        
         if len(commands) == 0:
             output("Select at least one task")
             return
+              
+        # check all commands are of the same type
+        prev_type = None
+        for command in commands:
+            if prev_type and prev_type != command.type:
+                output("All selected commands must be of the same type: Default/Accountless")
+                return
+            prev_type = command.type
         
+        # if commands are all accountless, make sure no accounts have been selected
+        if prev_type == CommandType.ACCOUNTLESS:
+            if len(accounts) > 0:
+                output("Deselect all accounts when using Accountless commands")
+            else:
+                self.accounts = [MONITOR_ACCOUNT]
+            
+        # commands are all default, check if we have selected accounts
+        elif len(accounts) == 0:
+            output("Select at least one account")
+            return
+            
+              
         self.accounts = accounts
         self.commands = commands
         self.number = len(AllJobs.jobs)
