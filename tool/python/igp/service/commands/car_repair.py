@@ -5,9 +5,11 @@ from selenium.webdriver.support import expected_conditions as ec
 from selenium.webdriver.support.ui import WebDriverWait
 
 from igp.service.base_igp_account import BaseIGPaccount
-from igp.util.decorators import igpcommand
-from igp.util.tools import click, output
+from igp.service.commands.tasks import Categories
 from igp.service.modifier.modifier import BaseModifier, IntegerField, OptionField
+from igp.util.decorators import igpcommand, simpleigpcommand
+from igp.util.tools import click, output
+from igp.util.turbomode import turbo_wait
 
 
 class RepairType(Enum):
@@ -20,12 +22,19 @@ class CarRepairCommands(BaseIGPaccount):
     FIX_TYPES = [["c1PartSwap", "c2PartSwap"], ["c1EngSwap", "c2EngSwap"]]
     ALL_REP_TYPES = [RepairType.CAR, RepairType.ENGINE]
 
-    @igpcommand(alias="test task") 
-    def just_tried_this(self):
-        output(f'You just tried this with {self.return_name()}')
+    @simpleigpcommand(alias="test login", category=Categories.MISC) 
+    def login_test(self):
+        if not self.logged_in():
+            self.login()
+            
+            if not self.logged_in():
+                output(f'Invalid details for {self.return_name()}')
+                return
+            
+        output(f'The details for {self.return_name()} are correct')
         
     
-    @igpcommand(alias="fix cars", page=repair_page,
+    @igpcommand(alias="fix cars", page=repair_page, category=Categories.CAR,
                 modifier=BaseModifier(IntegerField("eng_threshold", 0, 100, 100), IntegerField("part_threshold", 0, 100, 70)))
     def fix_cars(self, eng_threshold=99, part_threshold=80):
         """Repairs engine + parts of all cars
@@ -39,7 +48,7 @@ class CarRepairCommands(BaseIGPaccount):
         self.fix_car(1, RepairType.ENGINE, eng_threshold)
 
 
-    @igpcommand(alias="fix car", page=repair_page, 
+    @igpcommand(alias="fix car", page=repair_page, category=Categories.CAR, 
                 modifier=BaseModifier(IntegerField("car_num", 1, 2), OptionField("fix_type", ALL_REP_TYPES), IntegerField("threshold", 0, 100, 100)))
     def fix_car(self, car_num=0, fix_type=RepairType, threshold=100):
         '''Repairs a specified part of a specific car
@@ -65,6 +74,7 @@ class CarRepairCommands(BaseIGPaccount):
         tooltip = self.driver.find_elements(By.CLASS_NAME, "tTip")[0]
         fix_car = tooltip.find_elements(By.CLASS_NAME, "btn")[0]
         click(fix_car)
+        turbo_wait()
         
 
     def car_health(self, car_num=0, bar_num=0) -> int:
@@ -86,7 +96,7 @@ class CarRepairCommands(BaseIGPaccount):
         return int(health_text.split(": ")[1].split("%")[0])
 
    
-    @igpcommand(alias="car health", page=repair_page)
+    @igpcommand(alias="car health", page=repair_page, category=Categories.CAR)
     def all_car_health(self):
         '''Shows % of car and engine health for all cars'''
         
