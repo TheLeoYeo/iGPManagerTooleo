@@ -1,20 +1,19 @@
-import time
-
 from selenium.webdriver.common.by import By
 from selenium.webdriver.support import expected_conditions as ec
 from selenium.webdriver.support.ui import WebDriverWait
 
 from igp.service.base_igp_account import BaseIGPaccount
+from igp.service.commands.tasks import Categories
+from igp.service.modifier.modifier import BaseModifier, IntegerField
 from igp.util.decorators import igpcommand
 from igp.util.tools import click, output
-from igp.service.modifier.modifier import BaseModifier, IntegerField
+from igp.util.turbomode import turbo_wait
 
 
 class DriverTrainCommands(BaseIGPaccount):
     training_page = "https://igpmanager.com/app/p=training"
-
-            
-    @igpcommand(alias="train if above X%", page=training_page,
+     
+    @igpcommand(alias="train if above X%", page=training_page, category=Categories.TRAINING, 
                 modifier=BaseModifier(IntegerField("threshold", 0, 100, 50)))
     def train_above_threshold(self, threshold:int=50):
         '''Train if driver is above a certain minimal health value.
@@ -35,9 +34,10 @@ class DriverTrainCommands(BaseIGPaccount):
 
         train_button = self.driver.find_element(By.ID, "trainTrain")
         click(train_button)
+        turbo_wait()
 
 
-    @igpcommand(alias="train until X%", page=training_page,
+    @igpcommand(alias="train until X%", page=training_page, category=Categories.TRAINING,
                 modifier=BaseModifier(IntegerField("threshold", 0, 100)))
     def train_until_threshold(self, threshold:int=0):
         '''Train while driver is above a certain minimal health value
@@ -68,7 +68,7 @@ class DriverTrainCommands(BaseIGPaccount):
             count = count + 1
 
 
-    @igpcommand(alias="specific driver health", page=training_page,
+    @igpcommand(alias="specific driver health", page=training_page, category=Categories.TRAINING,
                 modifier=BaseModifier(IntegerField("driver_num", 1, 10, 1)))
     def driver_health(self, driver_num:int=1):
         """Displays the health of a specified driver
@@ -85,7 +85,7 @@ class DriverTrainCommands(BaseIGPaccount):
             output("Error: no such driver")
             
         
-    @igpcommand(alias="all driver health", page=training_page)
+    @igpcommand(alias="all driver health", page=training_page, category=Categories.TRAINING)
     def all_driver_healths(self):
         """Displays the health of all drivers"""
         

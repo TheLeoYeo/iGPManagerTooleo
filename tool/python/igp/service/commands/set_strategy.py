@@ -7,10 +7,12 @@ from selenium.webdriver.support import expected_conditions as ec
 from selenium.webdriver.support.ui import WebDriverWait
 
 from igp.service.base_igp_account import BaseIGPaccount
+from igp.service.commands.tasks import Categories
 from igp.service.modifier.modifier import BaseModifier, NumberOfStintsField, OptionField, StintsField, TyresField
+from igp.util.decorators import igpcommand
 from igp.util.exceptions import NoSuchPilotError
 from igp.util.tools import click, output
-from igp.util.decorators import igpcommand
+from igp.util.turbomode import turbo_wait
 from util.utils import StintNumbers, Tyres
 
 
@@ -26,7 +28,8 @@ class StrategyCommands(BaseIGPaccount):
     
     tyresfield = TyresField("tyres")
     stintsfield = StintsField("stints")
-    @igpcommand(alias="set all drivers' strat", page=strategy_page, help="Sets the strategy of all drivers in the account", 
+    @igpcommand(alias="set all drivers' strat", page=strategy_page, category=Categories.SETUP, 
+                help="Sets the strategy of all drivers in the account", 
                 modifier=BaseModifier(NumberOfStintsField("num_of_stints", tyresfield, stintsfield), tyresfield, stintsfield))
     def set_all_strats(self, num_of_stints:StintNumbers=StintNumbers.THREE, tyres:list[Tyres]=[], stints:list[int]=[]):
         for driver in self.ALL_DRV_TYPES:
@@ -35,7 +38,8 @@ class StrategyCommands(BaseIGPaccount):
 
     tyresfield2 = TyresField("tyres")
     stintsfield2 = StintsField("stints")
-    @igpcommand(alias="set a driver's strat", page=strategy_page, help="Sets the strategy of a specific driver in the account", 
+    @igpcommand(alias="set a driver's strat", page=strategy_page, category=Categories.SETUP, 
+                help="Sets the strategy of a specific driver in the account", 
                 modifier=BaseModifier(OptionField("driver", ALL_DRV_TYPES), NumberOfStintsField("num_of_stints", tyresfield2, stintsfield2), tyresfield2, stintsfield2))
     def set_driver_strat(self, driver:DriverTab=DriverTab.DRIVER1, num_of_stints:StintNumbers=StintNumbers.THREE, tyres:list[Tyres]=[], stints:list[int]=[]):
         try:
@@ -65,15 +69,17 @@ class StrategyCommands(BaseIGPaccount):
                 
                 submit = stintform.find_element(By.CLASS_NAME, "submit")
                 click(submit)
+                turbo_wait()
                 
         self.hit_save()
         
         
     tyresfield3 = TyresField("tyres")
     stintsfield3 = StintsField("stints")
-    @igpcommand(alias="set tyres + auto-length", page=strategy_page, help="Sets the strategy of a specific driver in the account, stint lengths are automatic", 
+    @igpcommand(alias="set tyres + auto-length", page=strategy_page, category=Categories.SETUP, 
+                help="Sets the strategy of a specific driver in the account, stint lengths are automatic", 
                 modifier=BaseModifier(OptionField("driver", ALL_DRV_TYPES), NumberOfStintsField("num_of_stints", tyresfield3, stintsfield3), tyresfield3))
-    def set_driver_strat(self, driver:DriverTab=DriverTab.DRIVER1, num_of_stints:StintNumbers=StintNumbers.THREE, tyres:list[Tyres]=[]):
+    def auto_driver_strat(self, driver:DriverTab=DriverTab.DRIVER1, num_of_stints:StintNumbers=StintNumbers.THREE, tyres:list[Tyres]=[]):
         try:
             self.grab_strat_tab(driver)
         except NoSuchPilotError:
@@ -97,6 +103,7 @@ class StrategyCommands(BaseIGPaccount):
                 
                 submit = stintform.find_element(By.CLASS_NAME, "submit")
                 click(submit)
+                turbo_wait()
                 
         self.hit_save()
         
@@ -109,6 +116,7 @@ class StrategyCommands(BaseIGPaccount):
             raise NoSuchPilotError()
 
         click(button)
+        turbo_wait()
     
     
     def fix_pit_number(self, pit_element:WebElement, numpits:int):

@@ -7,10 +7,12 @@ from selenium.webdriver.support import expected_conditions as ec
 from selenium.webdriver.support.ui import WebDriverWait
 
 from igp.service.base_igp_account import BaseIGPaccount
+from igp.service.commands.tasks import Categories
 from igp.service.modifier.modifier import BaseModifier, IntegerField, OptionField
 from igp.util.exceptions import NoSuchPilotError
 from igp.util.tools import click, output
 from igp.util.decorators import igpcommand
+from igp.util.turbomode import turbo_wait
 
 
 class Suspension(Enum):
@@ -29,20 +31,22 @@ class SetupCommands(BaseIGPaccount):
     ALL_SUSP_TYPES = [Suspension.SOFT, Suspension.NEUTRAL, Suspension.FIRM]
     ALL_DRV_TYPES = [DriverTab.DRIVER1, DriverTab.DRIVER2]
     
-    @igpcommand(alias="setup all drivers", page=setup_page, help="Sets the setup of all drivers in the account", 
+    @igpcommand(alias="setup all drivers", page=setup_page, category=Categories.SETUP, 
+                help="Sets the setup of all drivers in the account", 
                 modifier=BaseModifier(OptionField("suspension", ALL_SUSP_TYPES, 0), IntegerField("rheight", 1, 50, 20), IntegerField("wlevel", 1, 50, 20)))
     def setup_drivers(self, suspension:Suspension=Suspension.SOFT, rheight:int=20, wlevel:int=20):
         for driver in self.ALL_DRV_TYPES:
             self.setup_driver(driver, suspension, rheight, wlevel)
 
 
-    @igpcommand(alias="setup a driver", page=setup_page, 
+    @igpcommand(alias="setup a driver", page=setup_page, category=Categories.SETUP, 
                 modifier=BaseModifier(OptionField("driver", ALL_DRV_TYPES), OptionField("suspension", ALL_SUSP_TYPES, 0), IntegerField("rheight", 1, 50, 20), IntegerField("wlevel", 1, 50, 20)))
     def setup_driver(self, driver:DriverTab=DriverTab.DRIVER1, suspension:Suspension=Suspension.SOFT, rheight:int=20, wlevel:int=20):
         """Set setup for a driver"""
 
         try:
             self.grab_tab(driver)
+            turbo_wait()
         except NoSuchPilotError:
             return
         
@@ -67,6 +71,7 @@ class SetupCommands(BaseIGPaccount):
             raise NoSuchPilotError()
 
         click(button)
+        turbo_wait()
 
 
     def set_suspension(self, row:WebElement, suspension:Suspension):
