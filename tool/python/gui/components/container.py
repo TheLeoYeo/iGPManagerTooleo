@@ -95,17 +95,21 @@ class Container(QScrollArea):
                 if object in self.selected:
                     self.selected.remove(object)
                 
-                # remove above seperator if needed
+                # remove above separator if needed
+                # check if we didn't remove the first row
                 if index > 0:
+                    # remove the rowseparator above our row other than the first                    
                     rowsep = self.sequence[index - 1]
                     self.cont.layout().removeWidget(rowsep)
                     self.sequence.remove(rowsep)
-                    
+                
+                # We just removed the first row, check if there are still some rows after this
                 elif len(self.sequence) > 0:
                     rowsep = self.sequence[0]
                     self.cont.layout().removeWidget(rowsep)
                     self.sequence.remove(rowsep)
                 
+                # check if there are now no rows at all
                 if len(self.sequence) == 0:
                     self.noRows = True
 
