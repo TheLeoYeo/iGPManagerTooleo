@@ -3,6 +3,7 @@ import time
 
 from selenium.common.exceptions import ElementClickInterceptedException
 from selenium.webdriver.remote.webelement import WebElement
+
 from util.utils import join
 
 
@@ -24,17 +25,15 @@ def replace_if_gone(file_dir:str, default:str=""):
 def output(message:str, log_only=False, screen_only=False):
     message = message.__str__()
     if not screen_only:
-        replace_if_gone(log_dir())
-        with open(log_dir(), "a") as log_file:
+        replace_if_gone(LOGDIR)
+        with open(LOGDIR, "a") as log_file:
             log_file.write(f"[{datetime.now()}] {message}\n")
     
     if not log_only:
         Output.output(message)  
 
 
-LOGDIR = ("igp","results","log.txt")
-def log_dir():
-    return join(*LOGDIR, uplevel=2)
+LOGDIR = join("igp","results","log.txt", uplevel=2)
     
 
 class Listener():
