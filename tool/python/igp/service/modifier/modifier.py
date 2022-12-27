@@ -1,4 +1,5 @@
 from enum import Enum
+import re
 
 from util.utils import ALL_STINT_NUMBERS, ALL_TYRE_TYPES, DEFAULT_LENGTH, StintNumbers, Tyres
 
@@ -43,7 +44,29 @@ class IntegerField(Field):
 
     def help(self):
         return f"{self.param_name} must be between {self.lower} and {self.upper}"
-          
+
+
+class TextField(Field):
+    def __init__(self, param_name, default="", regex=".*"):
+        self.randomizer = None
+        if callable(default):
+            self.randomizer = default
+            default = default()
+    
+        Field.__init__(self, param_name, default)
+        self.regex = regex
+        
+    
+    def is_valid(self) -> bool:
+        return re.search(self.regex, self.value) is not None
+    
+    def help(self):
+        return f"{self.param_name} must match this regex: {self.regex}"
+    
+    def randomize(self):
+        if self.randomizer:
+            self.value = self.randomizer()
+        
         
 class OptionField(Field):
     def __init__(self, param_name, options:list[Enum], index:int=0):
