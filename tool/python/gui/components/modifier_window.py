@@ -5,7 +5,7 @@ from PyQt5.QtWidgets import *
 from gui.components.buttons import ConfirmButton
 from gui.components.container import Container, RefreshEvent
 from gui.components.field_container import FieldContainer
-from igp.service.modifier.modifier import BaseModifier
+from igp.service.modifier.modifier import BaseModifier, TextField
 from igp.util.events import Event
 
 
@@ -64,6 +64,13 @@ class ModifierWidget(QFrame):
         self.set.setCursor(QCursor(Qt.PointingHandCursor))
         layout.addWidget(self.set, alignment=Qt.AlignHCenter)
         
+        self.random = ConfirmButton()
+        self.random.setText("randomize")
+        self.random.setToolTip("Only randomizes text fields")
+        self.random.pressed.connect(self.randomize)
+        self.random.setCursor(QCursor(Qt.PointingHandCursor))
+        layout.addWidget(self.random, alignment=Qt.AlignHCenter)
+        
         self.setLayout(layout)
         
      
@@ -79,7 +86,19 @@ class ModifierWidget(QFrame):
             return
         ModifierWidget.shown_modifier = None
         super().hide()
-        
+    
+       
+    def hide_class():
+        if ModifierWidget.shown_modifier:
+            ModifierWidget.shown_modifier.hide()
+    
+    
+    def randomize(self):
+        for field in self.modifier.fields:
+            if isinstance(field, TextField):
+                field.randomize()
+        self.container.partial_refresh()
+    
         
     def handle(event:Event):
         if isinstance(event, RefreshEvent):
