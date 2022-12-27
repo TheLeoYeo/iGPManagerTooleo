@@ -3,6 +3,7 @@ from PyQt5 import QtWidgets, uic
 from gui.components.output_window import OutputWindow
 from gui.components.login_window import LoginWindow
 from gui.components.logs_window import LogsWindow
+from gui.components.modifier_window import ModifierWidget
 from gui.gui_util.ready_containers import ReadyContainers
 from gui.gui_util.window_size import read_size, update_size as US
 from igp.service.accounts import AccountIterator
@@ -83,6 +84,7 @@ class Main(QtWidgets.QMainWindow, UI_Window):
         
     
     def update_task_header(self):
+        ModifierWidget.hide_class()
         category:Category = self.tasksCont.category()
         self.task_header.setText(category.name)
         

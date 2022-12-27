@@ -53,7 +53,6 @@ class TaskDropDown(RowDropDown):
     def __init__(self, *args, **kwargs):
         RowDropDown.__init__(self, *args, **kwargs)
         self.modwidget = ModifierWidget(parent(self, 7))
-        self.modwidget.hide()
         
         
     def set_object(self, object):
