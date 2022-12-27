@@ -7,8 +7,8 @@ from util.utils import join
 
 
 def field_to_component(parent, field:Field):
-    if isinstance(field, IntegerField):
-        return IntegerComponent(parent, field)
+    if isinstance(field, IntegerField) or isinstance(field, TextField):
+        return TextComponent(parent, field)
     
     elif isinstance(field, NumberOfStintsField):
         return NumberOfStintsComponent(parent, field)
@@ -29,11 +29,14 @@ class FieldComponent():
         self.setMaximumHeight(30)
 
 
-class IntegerComponent(FieldComponent, QLineEdit):
+class TextComponent(FieldComponent, QLineEdit):
     def __init__(self, parent, field):
         QLineEdit.__init__(self, parent)
         FieldComponent.__init__(self, field)
-        self.setMaximumWidth(80)
+        if isinstance(field, TextField):
+            self.setMaximumWidth(120)
+        else:    
+            self.setMaximumWidth(80)
         self.setMinimumWidth(20)
         self.update_text()
         self.editingFinished.connect(self.update_value)
@@ -205,7 +208,7 @@ class StintsComponent(FieldComponent, QFrame):
         self.setMaximumHeight(30)
         self.setLayout(layout)
         
-        self.stints:list[IntegerComponent] = []
+        self.stints:list[TextComponent] = []
         NumberOfStintsComponent.lastcomponent.stints_component = self
         
                
@@ -214,7 +217,7 @@ class StintsComponent(FieldComponent, QFrame):
     
     
     def add_component(self, field):
-        stint = IntegerComponent(self, field)
+        stint = TextComponent(self, field)
         self.layout().addWidget(stint)
         self.stints.append(stint)
     
