@@ -23,8 +23,9 @@ class Job():
         if prev_type == CommandType.ACCOUNTLESS:
             if len(accounts) > 0:
                 output("Deselect all accounts when using Accountless commands")
+                return
             else:
-                self.accounts = [MONITOR_ACCOUNT]
+                accounts = [MONITOR_ACCOUNT]
             
         # commands are all default, check if we have selected accounts
         elif len(accounts) == 0:
