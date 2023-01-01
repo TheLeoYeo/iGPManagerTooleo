@@ -60,13 +60,13 @@ class LogsWindow(QFrame):
     
     
     def update_text(self):
-        message = ""
+        message = "\n"
         with open(LOGDIR, "r") as log_file:
             lines = log_file.readlines()
             lines.reverse()
             for line in lines:
                 message += line
-        
+
         self.container.set_text(message)
         
         
