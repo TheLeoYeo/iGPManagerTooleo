@@ -11,7 +11,7 @@ class LogsContainer(Container):
     def __init__(self, *args, **kwargs):
         Container.__init__(self, *args, **kwargs)
         self.text = QLabel()
-        self.text.setStyleSheet("padding:6px; background-color:rgb(35, 35, 35)")
+        self.text.setStyleSheet("padding:0px 6px; background-color:rgb(35, 35, 35)")
         self.text.setWordWrap(True)
         self.cont.layout().addWidget(self.text)
              
