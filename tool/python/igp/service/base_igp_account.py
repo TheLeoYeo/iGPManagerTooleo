@@ -167,6 +167,33 @@ class BaseIGPaccount():
     
     def help(self) -> str:
         return self.__str__()
+    
 
+    def tuto_skip(self):
+        try:
+            WebDriverWait(self.driver, 0.5).until(ec.presence_of_element_located((By.ID, "tutorial-container")))
+        except:
+            return
+        
+        tutocont = self.driver.find_element(By.ID, "tutorial-container")
+        try:
+            skip = tutocont.find_element(By.CLASS_NAME, "confirm")
+            click(skip)
+            tooltip = self.driver.find_elements(By.CLASS_NAME, "tTip")[0]
+            tutodone = tooltip.find_elements(By.CLASS_NAME, "btn")[0]
+            click(tutodone)
+            return
+        except:
+            self.recursive_tuto_continue()
+
+
+    def recursive_tuto_continue(self):
+        '''Keep clicking continue until there are no more to click'''
+        try:
+            tuto_continue = self.driver.find_element(By.CLASS_NAME, "tutorial-continue")
+            click(tuto_continue)
+            self.recursive_tuto_continue()
+        except:
+            return
 
 
