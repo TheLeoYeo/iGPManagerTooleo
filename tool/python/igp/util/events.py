@@ -1,8 +1,5 @@
-from enum import Enum
-
 class Event():
     def __init__(self, source=None, value=None):
-        Enum.__init__(self)
         self.source = source
         self.value = value
         
@@ -28,6 +25,9 @@ class AccountRemovedEvent(Event):
     pass
 
 class AccountAddedEvent(Event):
+    pass
+
+class AccountCreatedEvent(Event):
     pass
 
 class AllContainersReadyEvent(Event):
