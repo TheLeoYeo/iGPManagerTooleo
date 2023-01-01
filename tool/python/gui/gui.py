@@ -2,7 +2,7 @@ from util.utils import join
 import sys
 sys.path.append(join("gui","components",uplevel=2))
 
-from PyQt5 import QtWidgets
+from PyQt5 import QtWidgets, QtCore
 
 from gui.controllers.load_controller import LoadScreen
 from gui.controllers.main_controller import Main as MainWindow
@@ -14,6 +14,11 @@ class Main():
     def main(self):
         output("Started application", log_only=True)
         # Create app object
+        if hasattr(QtCore.Qt, 'AA_EnableHighDpiScaling'):
+            QtWidgets.QApplication.setAttribute(QtCore.Qt.AA_EnableHighDpiScaling, True)
+        if hasattr(QtCore.Qt, 'AA_UseHighDpiPixmaps'):
+            QtWidgets.QApplication.setAttribute(QtCore.Qt.AA_UseHighDpiPixmaps, True)
+        
         self.app = QtWidgets.QApplication(sys.argv)
         self.app.setStyleSheet(appStyles)
         
