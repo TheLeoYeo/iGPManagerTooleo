@@ -67,6 +67,8 @@ class CommandDecorator():
                 output("Could not perform task because the webdriver was not properly initialised.")
                 return
             
+            self.tuto_skip()
+            
             if not self.logged_in():
                 self.login()
             
@@ -77,6 +79,8 @@ class CommandDecorator():
             if page and self.driver.current_url != page:
                 self.driver.get(page)
                 turbo_wait()
+            
+            self.tuto_skip()
             
             func(self, *args, **kwargs)
             output(f"Finished doing task '{_alias}'", log_only=True)
