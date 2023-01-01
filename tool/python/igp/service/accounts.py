@@ -1,7 +1,8 @@
 import atexit
 
+from igp.service.commands.create_account import AccountCommands
 from igp.service.igpaccount import IGPaccount
-from igp.util.events import AccountAddedEvent, AccountNameUpdatedEvent, AccountRemovedEvent, Event
+from igp.util.events import AccountAddedEvent, AccountCreatedEvent, AccountNameUpdatedEvent, AccountRemovedEvent, Event
 from igp.util.tools import output, replace_if_gone
 from util.utils import join
 
@@ -34,6 +35,7 @@ class AccountIterator():
             self.index = 0
             
         self.collected_accounts = False
+        AccountCommands.add_to_ac_listeners(self)
 
 
     def acc_dir(self):
@@ -135,6 +137,11 @@ class AccountIterator():
     def changed(self, event:Event):
         for listener in self.listeners:
             listener.handle(event)
+    
+    
+    def handle(self, event:Event):
+        if isinstance(event, AccountCreatedEvent):
+            self.add_account(event.value)
             
             
 def exit_handler():
